@@ -1,0 +1,20 @@
+App.vue
+.\assets
+.\backend
+  db.js
+  server.js
+.\components
+  NavBar.vue
+  RoomCard.vue
+  UserCard.vue
+directory_structure.txt
+main.js
+PrintStructure.py
+.\router
+  index.js
+.\views
+  Game.vue
+  Login.vue
+  Profile.vue
+  Register.vue
+  RoomSelection.vue
