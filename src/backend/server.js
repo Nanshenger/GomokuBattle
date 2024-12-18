@@ -21,7 +21,6 @@ app.post('/register', async (req, res) => {
     if (!username || !password || !email) {
         return res.status(400).json({ message: '用户名、密码和邮箱不能为空' });
     }
-    console.log('收到注册请求:', req.body);  // 输出请求体输出请求体输出请求体输出请求体输出请求体输出请求体输出请求体输出请求体输出请求体输出请求体输出请求体输出请求体
     // 检查用户名是否已存在
     try {
         const [rows] = await db.execute('SELECT * FROM users WHERE username = ?', [username]);
