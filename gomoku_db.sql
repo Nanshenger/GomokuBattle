@@ -124,10 +124,11 @@ CREATE TABLE `rooms` (
   `host_user_id` int NOT NULL,
   `room_status` enum('waiting','playing','finished') DEFAULT 'waiting',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `player_count` int DEFAULT '0',
   PRIMARY KEY (`room_id`),
   KEY `host_user_id` (`host_user_id`),
   CONSTRAINT `rooms_ibfk_1` FOREIGN KEY (`host_user_id`) REFERENCES `users` (`userid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -136,6 +137,7 @@ CREATE TABLE `rooms` (
 
 LOCK TABLES `rooms` WRITE;
 /*!40000 ALTER TABLE `rooms` DISABLE KEYS */;
+INSERT INTO `rooms` VALUES (23,3,'waiting','2024-12-19 17:24:37',0);
 /*!40000 ALTER TABLE `rooms` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -161,7 +163,7 @@ CREATE TABLE `users` (
   `permission_level` tinyint DEFAULT '1',
   PRIMARY KEY (`userid`),
   UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -170,7 +172,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Anders','123456','2584036741@qq.com','Anders','male',0,0,0,'2024-12-16 22:25:56',NULL,3),(2,'1','1','1@qq.com','1','male',0,0,0,'2024-12-16 22:38:31',NULL,3),(3,'2','2','1234567890@qq.com','2','unknown',0,0,0,'2024-12-17 19:37:25',NULL,1);
+INSERT INTO `users` VALUES (1,'Anders','123456','2584036741@qq.com','Anders','male',0,0,0,'2024-12-16 22:25:56',NULL,3),(2,'1','1','1@qq.com','1','male',0,0,0,'2024-12-16 22:38:31',NULL,3),(3,'2','2','1234567890@qq.com','2','unknown',0,0,0,'2024-12-17 19:37:25',NULL,1),(4,'3','3','1234567890@qq.com','3','unknown',0,0,0,'2024-12-19 13:44:43',NULL,1),(5,'555','555','1234567890@qq.com','555','unknown',0,0,0,'2024-12-19 15:30:41',NULL,1);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -183,4 +185,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-12-18 18:20:39
+-- Dump completed on 2024-12-19 17:27:41

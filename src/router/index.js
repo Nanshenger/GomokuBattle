@@ -7,10 +7,14 @@ import Profile from '@/views/Profile.vue';
 
 const routes = [
   {
+    path: '/',  // 根路径
+    redirect: '/login',  // 重定向到登录页
+  },
+  {
     path: '/game', // 游戏主页面
     name: 'Game',
     component: Game,
-    meta: { requiresAuth: true }  // 需要登录才能访问
+    meta: { requiresAuth: true },  // 需要登录才能访问
   },
   {
     path: '/login', // 登录页面
@@ -24,20 +28,20 @@ const routes = [
   },
   {
     path: '/roomselection', // 房间选择页面
-    name: 'roomselection',
+    name: 'RoomSelection',
     component: RoomSelection,
-    meta: { requiresAuth: true }  // 需要登录才能访问
+    meta: { requiresAuth: true },  // 需要登录才能访问
   },
   {
     path: '/profile', // 个人资料页面
-    name: 'profile',
+    name: 'Profile',
     component: Profile,
-    meta: { requiresAuth: true }  // 需要登录才能访问
+    meta: { requiresAuth: true },  // 需要登录才能访问
   },
 ];
 
 const router = createRouter({
-  history: createWebHistory('/'),
+  history: createWebHistory(),
   routes,
 });
 
