@@ -75,14 +75,23 @@ app.post('/login', async (req, res) => {
 });
 
 
-
 // 获取房间列表接口
 app.get('/rooms', async (req, res) => {
     try {
+        // 更新状态为 'finished' 的房间（如果超过10分钟）
+        await db.execute(`
+        UPDATE rooms 
+        SET room_status = 'finished' 
+        WHERE room_status = 'waiting' 
+        AND TIMESTAMPDIFF(MINUTE, created_at, NOW()) > 10
+      `);
+
+        // 查询房间列表，排除已经是 'finished' 的房间
         const [rows] = await db.execute(`
         SELECT rooms.room_id, rooms.room_status, rooms.created_at, users.username AS host
         FROM rooms
         JOIN users ON rooms.host_user_id = users.userid
+        WHERE rooms.room_status != 'finished'
       `);
 
         res.json(rows); // 返回房间列表
