@@ -1,4 +1,3 @@
-<!-- src/components/UserCard.vue -->
 <template>
   <div class="user-card">
     <h3>{{ user.name }}</h3>
@@ -13,7 +12,8 @@ export default {
   props: {
     user: {
       type: Object,
-      required: true
+      required: true,
+      default: () => ({ name: 'Guest', email: 'guest@example.com' }) // 设置默认值
     }
   },
   methods: {
