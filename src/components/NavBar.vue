@@ -2,17 +2,25 @@
     <el-menu :default-active="activePath" class="navbar" mode="horizontal" background-color="#409EFF" text-color="#fff"
         active-text-color="#ffd04b">
         <el-menu-item index="/game" @click="handleClick('/game')">Game</el-menu-item>
+
+        <!-- 登录和注册菜单项 -->
         <el-menu-item v-if="!isLoggedIn" index="/login" @click="handleClick('/login')">Login</el-menu-item>
         <el-menu-item v-if="!isLoggedIn" index="/register" @click="handleClick('/register')">Register</el-menu-item>
+
+        <!-- 房间选择和个人资料菜单项 -->
         <el-menu-item v-if="isLoggedIn" index="/roomselection" @click="handleClick('/roomselection')">Room
             Selection</el-menu-item>
         <el-menu-item v-if="isLoggedIn" index="/profile" @click="handleClick('/profile')">Profile</el-menu-item>
-        <el-menu-item v-if="isLoggedIn" @click="logout">Logout</el-menu-item>
+
+        <!-- 显示当前用户名和登出按钮 -->
+        <el-menu-item v-if="isLoggedIn" @click="logout">
+            {{ username }} (Logout) <!-- 显示当前用户名 -->
+        </el-menu-item>
     </el-menu>
 </template>
 
 <script>
-import { defineComponent, ref, computed, watch } from 'vue';
+import { defineComponent, ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMenu, ElMenuItem } from 'element-plus';
 
@@ -29,9 +37,8 @@ export default defineComponent({
         // 计算是否已登录
         const isLoggedIn = computed(() => !!localStorage.getItem('username'));
 
-        // 设置组件的 key，使组件可以通过 key 变化强制重渲染
-        const navbarKey = ref(Date.now());
-
+        // 计算当前用户名
+        const username = computed(() => localStorage.getItem('username') || 'Guest');
 
         const handleClick = (path) => {
             activePath.value = path;
@@ -40,8 +47,6 @@ export default defineComponent({
 
         const logout = () => {
             localStorage.removeItem('username'); // 清除登录信息
-            // 跳转到登录页面并强制刷新
-            // location.reload(); // 刷新页面
             router.push('/login'); // 跳转到登录页面
         };
 
@@ -49,7 +54,7 @@ export default defineComponent({
             activePath,
             handleClick,
             isLoggedIn,
-            navbarKey,  // 传递 key 给组件，强制更新
+            username, // 返回计算出的用户名
             logout
         };
     }

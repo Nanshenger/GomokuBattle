@@ -14,6 +14,7 @@ const routes = [
     path: '/game', // 游戏主页面
     name: 'Game',
     component: Game,
+    props: route => ({ roomId: route.query.room }),  // 通过 query 参数传递 roomId
     meta: { requiresAuth: true },  // 需要登录才能访问
   },
   {

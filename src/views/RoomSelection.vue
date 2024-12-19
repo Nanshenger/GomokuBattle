@@ -51,11 +51,16 @@ export default {
       try {
         const response = await axios.post('http://localhost:3000/rooms', { username });
         console.log("房间创建成功:", response.data);
-        this.fetchRooms(); // 房间创建成功后刷新房间列表
+
+        const roomId = response.data.room_id;  // 获取新创建房间的 ID
+
+        // 跳转到新创建的房间
+        this.$router.push(`/game?room=${roomId}`);
       } catch (error) {
         console.error("创建房间失败:", error);
       }
-    },
+    }
+    ,
 
     // 加入房间
     joinRoom(roomId) {
