@@ -1,7 +1,6 @@
 <template>
   <div id="app">
-    <!-- 引入全局导航栏 -->
-    <NavBar />
+
 
     <!-- 渲染路由内容 -->
     <router-view></router-view> <!-- 这里是渲染路由内容的地方 -->

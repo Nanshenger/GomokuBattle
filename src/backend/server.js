@@ -75,6 +75,60 @@ app.post('/login', async (req, res) => {
 });
 
 
+
+// 获取房间列表接口
+app.get('/rooms', async (req, res) => {
+    try {
+        const [rows] = await db.execute(`
+        SELECT rooms.room_id, rooms.room_status, rooms.created_at, users.username AS host
+        FROM rooms
+        JOIN users ON rooms.host_user_id = users.userid
+      `);
+
+        res.json(rows); // 返回房间列表
+    } catch (error) {
+        console.error('获取房间列表失败:', error);
+        res.status(500).json({ message: '服务器错误' });
+    }
+});
+
+// 创建房间接口
+app.post('/rooms', async (req, res) => {
+    const { username } = req.body;
+
+    if (!username) {
+        return res.status(400).json({ message: '用户名不能为空' });
+    }
+
+    try {
+        // 获取用户ID
+        const [userRows] = await db.execute('SELECT userid FROM users WHERE username = ?', [username]);
+        if (userRows.length === 0) {
+            return res.status(404).json({ message: '用户不存在' });
+        }
+
+        const userId = userRows[0].userid;
+
+        // 插入新房间到数据库
+        const [insertResult] = await db.execute(
+            'INSERT INTO rooms (host_user_id) VALUES (?)',
+            [userId]
+        );
+
+        // 返回创建的房间信息
+        const [roomRows] = await db.execute(
+            'SELECT room_id, host_user_id FROM rooms WHERE room_id = ?',
+            [insertResult.insertId]
+        );
+
+        res.status(201).json(roomRows[0]); // 返回新创建的房间信息
+    } catch (error) {
+        console.error('创建房间失败:', error);
+        res.status(500).json({ message: '服务器错误' });
+    }
+});
+
+
 // 创建 HTTP 服务器
 const server = app.listen(port, () => {
     console.log(`HTTP 服务器正在运行: http://localhost:${port}`);

@@ -1,5 +1,9 @@
 // Profile.vue
 <template>
+    <!-- 引入全局导航栏 -->
+    <NavBar />
+    <!-- 渲染路由内容 -->
+    <router-view></router-view> <!-- 这里是渲染路由内容的地方 -->
     <div class="profile-container">
         <el-card class="profile-card">
             <h2 class="profile-title">个人资料</h2>
@@ -44,9 +48,12 @@
 
 <script>
 import { ElMessage } from 'element-plus';
-
+import NavBar from '@/components/NavBar.vue'  // 引入 NavBar 组件
 export default {
     name: "Profile",
+    components: {
+        NavBar,
+    },
     data() {
         return {
             isEditing: false,

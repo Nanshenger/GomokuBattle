@@ -41,7 +41,7 @@ export default defineComponent({
         const logout = () => {
             localStorage.removeItem('username'); // 清除登录信息
             // 跳转到登录页面并强制刷新
-            location.reload(); // 刷新页面
+            // location.reload(); // 刷新页面
             router.push('/login'); // 跳转到登录页面
         };
 

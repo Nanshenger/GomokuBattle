@@ -1,4 +1,8 @@
 <template>
+  <!-- 引入全局导航栏 -->
+  <!-- <NavBar /> -->
+  <!-- 渲染路由内容 -->
+  <router-view></router-view> <!-- 这里是渲染路由内容的地方 -->
   <div class="login-container">
     <el-card class="login-card">
       <h2 class="login-title">登录</h2>
@@ -21,9 +25,13 @@
 <script>
 import axios from 'axios'; // 引入 axios
 import { ElMessage } from 'element-plus';
-
+import NavBar from '@/components/NavBar.vue'  // 引入 NavBar 组件
 export default {
+
   name: "LoginPage",
+  components: {
+    NavBar,
+  },
   data() {
     return {
       loginForm: {
@@ -42,33 +50,33 @@ export default {
   },
   methods: {
     async onSubmit() {
-  this.$refs.loginForm.validate(async (valid) => {
-    if (valid) {
-      try {
-        // 向后端发送登录请求
-        const response = await axios.post('http://localhost:3000/login', {
-          username: this.loginForm.username,
-          password: this.loginForm.password,
-        });
-        if (response.data.success) {
-          ElMessage.success("登录成功");
-          // 保存用户名到 localStorage
-          localStorage.setItem("username", this.loginForm.username);
-          // 跳转到选择房间页面
-          this.$router.push("/roomselection");
+      this.$refs.loginForm.validate(async (valid) => {
+        if (valid) {
+          try {
+            // 向后端发送登录请求
+            const response = await axios.post('http://localhost:3000/login', {
+              username: this.loginForm.username,
+              password: this.loginForm.password,
+            });
+            if (response.data.success) {
+              ElMessage.success("登录成功");
+              // 保存用户名到 localStorage
+              localStorage.setItem("username", this.loginForm.username);
+              // 跳转到选择房间页面
+              this.$router.push("/roomselection");
+            } else {
+              ElMessage.error(response.data.message || "用户名或密码错误");
+            }
+          } catch (error) {
+            ElMessage.error("登录失败，请稍后重试");
+            console.error("登录错误：", error);
+          }
         } else {
-          ElMessage.error(response.data.message || "用户名或密码错误");
+          ElMessage.error("请完善登录信息");
         }
-      } catch (error) {
-        ElMessage.error("登录失败，请稍后重试");
-        console.error("登录错误：", error);
-      }
-    } else {
-      ElMessage.error("请完善登录信息");
+      });
     }
-  });
-}
-,
+    ,
     toRegister() {
       this.$router.push("/register");
     },

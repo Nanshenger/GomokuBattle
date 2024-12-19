@@ -1,4 +1,8 @@
 <template>
+  <!-- 引入全局导航栏 -->
+  <!-- <NavBar /> -->
+  <!-- 渲染路由内容 -->
+  <router-view></router-view> <!-- 这里是渲染路由内容的地方 -->
   <div class="register-container">
     <el-card class="register-card">
       <h2 class="register-title">注册</h2>
@@ -37,9 +41,12 @@
 <script>
 import { ElMessage } from 'element-plus';  // 引入消息提示
 import axios from 'axios'; // 引入 axios
-
+import NavBar from '@/components/NavBar.vue'  // 引入 NavBar 组件
 export default {
   name: "RegisterPage",
+  components: {
+    NavBar,
+  },
   data() {
     return {
       // 注册表单数据

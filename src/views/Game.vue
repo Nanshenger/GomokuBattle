@@ -1,4 +1,8 @@
 <template>
+  <!-- 引入全局导航栏 -->
+  <NavBar />
+  <!-- 渲染路由内容 -->
+  <router-view></router-view> <!-- 这里是渲染路由内容的地方 -->
   <div class="common-layout">
     <el-container>
       <!-- 左侧侧边栏 -->
@@ -49,12 +53,13 @@
 import { ref } from 'vue'
 import UserCard from '@/components/UserCard.vue'
 import { ElButton } from 'element-plus'
-
+import NavBar from '@/components/NavBar.vue'  // 引入 NavBar 组件
 export default {
   name: 'Home',
   components: {
     UserCard,
     ElButton,
+    NavBar,
   },
   setup() {
     // 初始化棋盘
