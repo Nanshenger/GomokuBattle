@@ -1,23 +1,22 @@
 <template>
     <el-menu :default-active="activePath" class="navbar" mode="horizontal" background-color="#409EFF" text-color="#fff"
         active-text-color="#ffd04b">
-        <el-menu-item index="/game" @click="handleClick('/game')">Game</el-menu-item>
+        <el-menu-item index="/game" @click="handleClick('/game')">游 戏</el-menu-item>
 
         <!-- 登录和注册菜单项 -->
-        <el-menu-item v-if="!isLoggedIn" index="/login" @click="handleClick('/login')">Login</el-menu-item>
-        <el-menu-item v-if="!isLoggedIn" index="/register" @click="handleClick('/register')">Register</el-menu-item>
+        <el-menu-item v-if="!isLoggedIn" index="/login" @click="handleClick('/login')">登 录</el-menu-item>
+        <el-menu-item v-if="!isLoggedIn" index="/register" @click="handleClick('/register')">注 册</el-menu-item>
 
         <!-- 游戏介绍界面 -->
-        <el-menu-item v-if="isLoggedIn" index="/about" @click="handleClick('/about')">About</el-menu-item>
+        <el-menu-item v-if="isLoggedIn" index="/about" @click="handleClick('/about')">关 于</el-menu-item>
 
         <!-- 房间选择和个人资料菜单项 -->
-        <el-menu-item v-if="isLoggedIn" index="/roomselection" @click="handleClick('/roomselection')">Room
-            Selection</el-menu-item>
-        <el-menu-item v-if="isLoggedIn" index="/profile" @click="handleClick('/profile')">Profile</el-menu-item>
+        <el-menu-item v-if="isLoggedIn" index="/roomselection" @click="handleClick('/roomselection')">房间选择</el-menu-item>
+        <el-menu-item v-if="isLoggedIn" index="/profile" @click="handleClick('/profile')">个人资料</el-menu-item>
 
         <!-- 显示当前用户名和登出按钮 -->
         <el-menu-item v-if="isLoggedIn" @click="logout">
-            {{ username }} (Logout) <!-- 显示当前用户名 -->
+            {{ username }} (登出) <!-- 显示当前用户名 -->
         </el-menu-item>
     </el-menu>
 </template>
