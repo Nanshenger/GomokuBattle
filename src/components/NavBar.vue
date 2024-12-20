@@ -7,6 +7,9 @@
         <el-menu-item v-if="!isLoggedIn" index="/login" @click="handleClick('/login')">Login</el-menu-item>
         <el-menu-item v-if="!isLoggedIn" index="/register" @click="handleClick('/register')">Register</el-menu-item>
 
+        <!-- 游戏介绍界面 -->
+        <el-menu-item v-if="isLoggedIn" index="/about" @click="handleClick('/about')">About</el-menu-item>
+
         <!-- 房间选择和个人资料菜单项 -->
         <el-menu-item v-if="isLoggedIn" index="/roomselection" @click="handleClick('/roomselection')">Room
             Selection</el-menu-item>

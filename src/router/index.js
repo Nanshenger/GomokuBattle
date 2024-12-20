@@ -4,6 +4,7 @@ import Login from '../views/Login.vue';
 import Register from '../views/Register.vue';
 import RoomSelection from '../views/RoomSelection.vue';
 import Profile from '@/views/Profile.vue';
+import About from '../views/About.vue';
 
 const routes = [
   {
@@ -26,6 +27,11 @@ const routes = [
     path: '/register', // 注册页面
     name: 'Register',
     component: Register,
+  },
+  {
+    path: '/about', // 介绍页面
+    name: 'About',
+    component: About,
   },
   {
     path: '/roomselection', // 房间选择页面
