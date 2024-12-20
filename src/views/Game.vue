@@ -1,8 +1,6 @@
 <template>
   <!-- 引入全局导航栏 -->
   <NavBar />
-  <!-- 渲染路由内容 -->
-  <router-view></router-view> <!-- 这里是渲染路由内容的地方 -->
   <div class="common-layout">
     <el-container>
       <!-- 左侧侧边栏 -->
@@ -23,7 +21,6 @@
             <div v-for="(row, rowIndex) in board" :key="'row-' + rowIndex" class="row">
               <div v-for="(cell, colIndex) in row" :key="'col-' + colIndex" class="cell" :class="cell"
                 @click="handleCellClick(rowIndex, colIndex)">
-                <!-- 显示棋子 -->
                 <div v-if="cell" :class="['piece', cell]"></div>
               </div>
             </div>
@@ -55,48 +52,38 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
-import UserCard from '@/components/UserCard.vue'
-import { ElButton } from 'element-plus'
-import NavBar from '@/components/NavBar.vue'  // 引入 NavBar 组件
+import { ref } from 'vue';
+import UserCard from '@/components/UserCard.vue';
+import { ElButton } from 'element-plus';
+import NavBar from '@/components/NavBar.vue';
 
 export default {
   name: 'Game',
-  components: {
-    UserCard,
-    ElButton,
-    NavBar,
-  },
+  components: { UserCard, ElButton, NavBar },
   setup() {
     const board = ref(Array(15).fill(null).map(() => Array(15).fill(null))); // 初始化棋盘
     const currentPlayer = ref('X');  // 当前玩家
-    const winner = ref(null);  // 用于存储胜利者
-    const gameOver = ref(false);  // 游戏是否结束
+    const winner = ref(null);  // 胜利者
+    const gameOver = ref(false);  // 游戏结束标志
     const roomId = new URLSearchParams(window.location.search).get('room');  // 获取房间ID
 
     // WebSocket 连接到房间
     const ws = new WebSocket(`ws://localhost:3000/?room=${roomId}`);
 
-    ws.onopen = () => {
-      console.log('WebSocket 连接已打开');
-    };
-
     // 处理服务器发送的消息
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      if (data.type === 'INIT_BOARD') {
-        board.value = data.board;  // 初始化棋盘
-      } else if (data.type === 'UPDATE_BOARD') {
-        board.value = data.board;  // 更新棋盘
+      if (data.type === 'INIT_BOARD' || data.type === 'UPDATE_BOARD') {
+        board.value = data.board;  // 初始化或更新棋盘
       } else if (data.type === 'VICTORY') {
         winner.value = data.winner;  // 设置胜利者
-        gameOver.value = true;  // 设置游戏结束
+        gameOver.value = true;  // 游戏结束
       }
     };
 
     // 处理玩家点击棋盘
     const handleCellClick = (row, col) => {
-      if (board.value[row][col] === null && !gameOver.value) { // 如果该位置为空，且游戏没有结束
+      if (board.value[row][col] === null && !gameOver.value) {
         board.value[row][col] = currentPlayer.value;  // 更新棋盘
         currentPlayer.value = currentPlayer.value === 'X' ? 'O' : 'X';  // 切换玩家
 
@@ -124,12 +111,7 @@ export default {
       ) {
         winner.value = player;  // 设置胜利者
         gameOver.value = true;  // 游戏结束
-
-        // 发送胜利消息到服务器
-        ws.send(JSON.stringify({
-          type: 'VICTORY',
-          winner: player,
-        }));
+        ws.send(JSON.stringify({ type: 'VICTORY', winner: player }));  // 发送胜利消息
         alert(player + ' wins!');
       }
     };
@@ -162,28 +144,18 @@ export default {
 
     // 重置游戏
     const resetGame = () => {
-      board.value = Array(15).fill(null).map(() => Array(15).fill(null));
-      currentPlayer.value = 'X';
-      winner.value = null;
-      gameOver.value = false;
-
-      // 发送重置游戏的消息
-      ws.send(JSON.stringify({
-        type: 'RESET_GAME',
-      }));
+      board.value = Array(15).fill(null).map(() => Array(15).fill(null));  // 清空棋盘
+      currentPlayer.value = 'X';  // 重新设置为 X 开始
+      winner.value = null;  // 清空胜利者
+      gameOver.value = false;  // 游戏继续
+      ws.send(JSON.stringify({ type: 'RESET_GAME' }));  // 发送重置消息
     };
 
-    return {
-      board,
-      currentPlayer,
-      handleCellClick,
-      resetGame,
-      winner,
-      gameOver,
-    };
+    return { board, currentPlayer, handleCellClick, resetGame, winner, gameOver };
   },
 };
 </script>
+
 
 <style scoped>
 .common-layout {
