@@ -54,21 +54,25 @@
 <script>
 import { ref } from 'vue';
 import UserCard from '@/components/UserCard.vue';
-import { ElButton } from 'element-plus';
+import {ElButton, ElMessage} from 'element-plus';
 import NavBar from '@/components/NavBar.vue';
+import router from '@/router';
 
 export default {
   name: 'Game',
   components: { UserCard, ElButton, NavBar },
+
   setup() {
     const board = ref(Array(15).fill(null).map(() => Array(15).fill(null))); // 初始化棋盘
     const currentPlayer = ref('X');  // 当前玩家
     const winner = ref(null);  // 胜利者
     const gameOver = ref(false);  // 游戏结束标志
     const roomId = new URLSearchParams(window.location.search).get('room');  // 获取房间ID
+    const userid = localStorage.getItem('userid');
+
 
     // WebSocket 连接到房间
-    const ws = new WebSocket(`ws://localhost:3000/?room=${roomId}`);
+    const ws = new WebSocket(`ws://localhost:3000/?userid=${userid}&room=${roomId}`);
 
     // 处理服务器发送的消息
     ws.onmessage = (event) => {
@@ -78,6 +82,10 @@ export default {
       } else if (data.type === 'VICTORY') {
         winner.value = data.winner;  // 设置胜利者
         gameOver.value = true;  // 游戏结束
+      } else if (data.type === 'ConnectionDenial') {
+        // 跳转到选择房间页面
+        router.push("/roomselection");
+        ElMessage.error(data.message);
       }
     };
 

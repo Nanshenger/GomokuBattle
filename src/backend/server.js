@@ -62,7 +62,8 @@ app.post('/login', async (req, res) => {
 
         // 直接比较密码（明文）
         if (user.password === password) {
-            res.json({ success: true, message: '登录成功' });
+            const {userid, username} = user;
+            res.json({ success: true, message: '登录成功', data: { userid, username } });
         } else {
             res.json({ success: false, message: '密码错误' });
         }
@@ -117,7 +118,7 @@ app.post('/rooms', async (req, res) => {
 
         // 插入新房间到数据库
         const [insertResult] = await db.execute(
-            'INSERT INTO rooms (host_user_id) VALUES (?)',
+            'INSERT INTO rooms (host_user_id, player_count) VALUES (?, 1)',
             [userId]
         );
 
@@ -138,6 +139,33 @@ app.post('/rooms', async (req, res) => {
     }
 });
 
+app.post("/addRoom", async (req, res) => {
+    const { userid, roomId } = req.body;
+    try {
+        const [result] = await db.execute(
+            `SELECT player_count, room_status FROM rooms WHERE room_id = ?`,
+            [roomId]
+        );
+        const playerCount = result[0].player_count;
+        const roomStatus = result[0].room_status;
+        if (roomStatus === 'finished') {
+            return res.json({ success: false, message: '房间已关闭，无法加入...' });
+        }
+        if (playerCount === 2) {
+            return res.json({ success: false, message: '房间人满，无法加入....' });
+        }
+        // 修改房间人数
+        await db.execute(
+            `update rooms SET player_count = ?, room_status = 'playing', player_id = ? WHERE room_id = ?`,
+            [playerCount + 1, userid, roomId]
+        )
+        return res.json({ success: true });
+    } catch (err) {
+        console.error('玩家' + userid + + '，加入房间失败:', err.message);
+        res.json({ success: false, message: '服务错误' });
+    }
+})
+
 // 创建 HTTP 服务器
 const server = app.listen(port, () => {
     console.log(`HTTP 服务器正在运行: http://localhost:${port}`);
@@ -146,13 +174,33 @@ const server = app.listen(port, () => {
 // 创建 WebSocket 服务器
 const wss = new WebSocketServer({ noServer: true });
 
-wss.on('connection', (ws, req) => {
-    const roomId = new URL(req.url, `http://${req.headers.host}`).searchParams.get('room');
+wss.on('connection', async (ws, req) => {
+    var searchParams = new URL(req.url, `http://${req.headers.host}`).searchParams;
+    const roomId = searchParams.get('room');
+    const userid = searchParams.get('userid');
+
+    const [result] = await db.execute(
+        `SELECT *
+         FROM rooms
+         WHERE room_id = ?`,
+        [roomId]
+    );
+
+    if (result.length === 0) {
+        ws.send(JSON.stringify({type: 'ConnectionDenial', message: '房间号不存在'}));
+    }
+    var playerId = result[0].player_id;
+    var hostUserId = result[0].host_user_id;
+    if (userid != hostUserId && userid != playerId) {
+        ws.send(JSON.stringify({type: 'ConnectionDenial', message: '拒绝连接'}));
+        return;
+    }
+
     console.log(`客户端已连接到房间: ${roomId}`);
 
     // 将当前房间的棋盘信息发送给客户端
     if (roomBoards[roomId]) {
-        ws.send(JSON.stringify({ type: 'INIT_BOARD', board: roomBoards[roomId] }));
+        ws.send(JSON.stringify({type: 'INIT_BOARD', board: roomBoards[roomId]}));
     }
 
     // 监听来自客户端的棋盘更新消息
@@ -164,7 +212,7 @@ wss.on('connection', (ws, req) => {
             if (roomBoards[roomId]) {
                 roomBoards[roomId][data.row][data.col] = data.player;
                 // 广播棋盘更新
-                broadcastToRoom(roomId, { type: 'UPDATE_BOARD', board: roomBoards[roomId] });
+                broadcastToRoom(roomId, {type: 'UPDATE_BOARD', board: roomBoards[roomId]});
             }
         }
     });

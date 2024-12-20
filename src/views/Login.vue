@@ -62,6 +62,7 @@ export default {
               ElMessage.success("登录成功");
               // 保存用户名到 localStorage
               localStorage.setItem("username", this.loginForm.username);
+              localStorage.setItem("userid", response.data.data.userid);
               // 跳转到选择房间页面
               this.$router.push("/roomselection");
             } else {

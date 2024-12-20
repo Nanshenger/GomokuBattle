@@ -17,7 +17,8 @@
 <script>
 import RoomCard from "../components/RoomCard.vue";
 import NavBar from '@/components/NavBar.vue';  // 引入 NavBar 组件
-import axios from 'axios'; // 引入 axios 用于发送请求
+import axios from 'axios';
+import {ElMessage} from "element-plus"; // 引入 axios 用于发送请求
 
 export default {
   name: "RoomSelection",
@@ -63,9 +64,15 @@ export default {
     ,
 
     // 加入房间
-    joinRoom(roomId) {
-      console.log(`加入房间：${roomId}`);
-      this.$router.push(`/game?room=${roomId}`); // 加入指定房间并跳转到游戏页面
+    async joinRoom(roomId) {
+      const userid = localStorage.getItem('userid');
+      const response = await axios.post('http://localhost:3000/addRoom', { userid: userid, roomId: roomId });
+      if (response.data.success) {
+        console.log(`加入房间：${roomId}`);
+        this.$router.push(`/game?room=${roomId}`); // 加入指定房间并跳转到游戏页面
+      } else {
+        ElMessage.error(response.data.message);
+      }
     },
   },
 };
