@@ -3,6 +3,8 @@ import { WebSocketServer } from 'ws'; // WebSocket 导入
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import db from './db.js'; // 引入数据库模块
+import login from './login.js';  // 引入 login 路由
+import register from './register.js';  // 引入 register 路由
 
 // 初始化 express 应用
 const app = express();
@@ -13,65 +15,9 @@ const roomBoards = {};  // 保存房间的棋盘信息
 app.use(cors());
 app.use(bodyParser.json());
 
-// 用户注册接口
-app.post('/register', async (req, res) => {
-    const { username, password, email, nickname, sex } = req.body;
-
-    // 检查必填字段
-    if (!username || !password || !email) {
-        return res.status(400).json({ message: '用户名、密码和邮箱不能为空' });
-    }
-
-    // 检查用户名是否已存在
-    try {
-        const [rows] = await db.execute('SELECT * FROM users WHERE username = ?', [username]);
-        console.log('数据库查询结果:', rows);  // 输出查询结果
-
-        if (rows.length > 0) {
-            return res.status(400).json({ message: '用户名已存在' });
-        }
-
-        // 插入新用户到数据库
-        const [insertResult] = await db.execute(
-            'INSERT INTO users (username, password, email, nickname, sex, permission_level) VALUES (?, ?, ?, ?, ?, ?)',
-            [username, password, email, nickname, sex || 'unknown', 1]  // 默认性别为unknown，权限为1
-        );
-
-        console.log('插入结果:', insertResult);  // 输出插入结果
-
-        // 返回成功响应
-        res.status(201).json({ message: '注册成功' });
-    } catch (err) {
-        console.error('注册过程中发生错误:', err);
-        res.status(500).json({ message: '服务器错误' });
-    }
-});
-
-// 用户登录接口
-app.post('/login', async (req, res) => {
-    const { username, password } = req.body;
-
-    try {
-        const [rows] = await db.execute('SELECT * FROM users WHERE username = ?', [username]);
-
-        if (rows.length === 0) {
-            return res.status(400).json({ success: false, message: '用户名不存在' });
-        }
-
-        const user = rows[0];
-
-        // 直接比较密码（明文）
-        if (user.password === password) {
-            const {userid, username} = user;
-            res.json({ success: true, message: '登录成功', data: { userid, username } });
-        } else {
-            res.json({ success: false, message: '密码错误' });
-        }
-    } catch (error) {
-        console.error('数据库错误:', error);
-        res.status(500).json({ message: '数据库错误' });
-    }
-});
+// 使用 login 和 register 路由
+app.use('/login', login);  // 将 login 路由挂载到 /login
+app.use('/register', register);  // 将 register 路由挂载到 /register
 
 // 获取房间列表接口
 app.get('/rooms', async (req, res) => {
@@ -187,12 +133,12 @@ wss.on('connection', async (ws, req) => {
     );
 
     if (result.length === 0) {
-        ws.send(JSON.stringify({type: 'ConnectionDenial', message: '房间号不存在'}));
+        ws.send(JSON.stringify({ type: 'ConnectionDenial', message: '房间号不存在' }));
     }
     var playerId = result[0].player_id;
     var hostUserId = result[0].host_user_id;
     if (userid != hostUserId && userid != playerId) {
-        ws.send(JSON.stringify({type: 'ConnectionDenial', message: '拒绝连接'}));
+        ws.send(JSON.stringify({ type: 'ConnectionDenial', message: '拒绝连接' }));
         return;
     }
 
@@ -200,7 +146,7 @@ wss.on('connection', async (ws, req) => {
 
     // 将当前房间的棋盘信息发送给客户端
     if (roomBoards[roomId]) {
-        ws.send(JSON.stringify({type: 'INIT_BOARD', board: roomBoards[roomId]}));
+        ws.send(JSON.stringify({ type: 'INIT_BOARD', board: roomBoards[roomId] }));
     }
 
     // 监听来自客户端的棋盘更新消息
@@ -212,7 +158,7 @@ wss.on('connection', async (ws, req) => {
             if (roomBoards[roomId]) {
                 roomBoards[roomId][data.row][data.col] = data.player;
                 // 广播棋盘更新
-                broadcastToRoom(roomId, {type: 'UPDATE_BOARD', board: roomBoards[roomId]});
+                broadcastToRoom(roomId, { type: 'UPDATE_BOARD', board: roomBoards[roomId] });
             }
         }
     });
