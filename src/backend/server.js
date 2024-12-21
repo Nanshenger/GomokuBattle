@@ -121,22 +121,18 @@ const server = app.listen(port, () => {
 const wss = new WebSocketServer({ noServer: true });
 
 wss.on('connection', async (ws, req) => {
-    var searchParams = new URL(req.url, `http://${req.headers.host}`).searchParams;
+    const searchParams = new URL(req.url, `http://${req.headers.host}`).searchParams;
     const roomId = searchParams.get('room');
     const userid = searchParams.get('userid');
 
-    const [result] = await db.execute(
-        `SELECT *
-         FROM rooms
-         WHERE room_id = ?`,
-        [roomId]
-    );
-
+    // 验证房间是否存在，用户是否有权限连接
+    const [result] = await db.execute(`SELECT * FROM rooms WHERE room_id = ?`, [roomId]);
     if (result.length === 0) {
         ws.send(JSON.stringify({ type: 'ConnectionDenial', message: '房间号不存在' }));
+        return;
     }
-    var playerId = result[0].player_id;
-    var hostUserId = result[0].host_user_id;
+    const playerId = result[0].player_id;
+    const hostUserId = result[0].host_user_id;
     if (userid != hostUserId && userid != playerId) {
         ws.send(JSON.stringify({ type: 'ConnectionDenial', message: '拒绝连接' }));
         return;
@@ -157,8 +153,24 @@ wss.on('connection', async (ws, req) => {
             // 更新棋盘状态
             if (roomBoards[roomId]) {
                 roomBoards[roomId][data.row][data.col] = data.player;
+
+                // 判断是否有胜利者
+                const winner = checkWinner(roomId, data.row, data.col, data.player);
+                if (winner) {
+                    // 广播胜利信息
+                    broadcastToRoom(roomId, { type: 'VICTORY', winner });
+                    return;
+                }
+
                 // 广播棋盘更新
                 broadcastToRoom(roomId, { type: 'UPDATE_BOARD', board: roomBoards[roomId] });
+            }
+        }
+        if (data.type === 'RESET_GAME') {
+            // 重置棋盘
+            if (roomBoards[roomId]) {
+                roomBoards[roomId] = Array(15).fill(null).map(() => Array(15).fill(null));
+                broadcastToRoom(roomId, { type: 'RESTART', board: roomBoards[roomId] });
             }
         }
     });
@@ -176,6 +188,49 @@ function broadcastToRoom(roomId, message) {
             client.send(JSON.stringify(message));
         }
     });
+}
+
+// 胜利判断函数
+function checkWinner(roomId, row, col, player) {
+    if (!roomBoards[roomId]) return null;
+    const directions = [
+        [0, 1], // 水平
+        [1, 0], // 垂直
+        [1, 1], // 主对角线
+        [1, -1] // 副对角线
+    ];
+
+    for (let [dRow, dCol] of directions) {
+        let count = 1; // 计数当前方向上连续的棋子数量
+
+        // 检查前方
+        for (let i = 1; i < 5; i++) {
+            const newRow = row + dRow * i;
+            const newCol = col + dCol * i;
+            if (newRow >= 0 && newRow < 15 && newCol >= 0 && newCol < 15 && roomBoards[roomId][newRow][newCol] === player) {
+                count++;
+            } else {
+                break;
+            }
+        }
+
+        // 检查后方
+        for (let i = 1; i < 5; i++) {
+            const newRow = row - dRow * i;
+            const newCol = col - dCol * i;
+            if (newRow >= 0 && newRow < 15 && newCol >= 0 && newCol < 15 && roomBoards[roomId][newRow][newCol] === player) {
+                count++;
+            } else {
+                break;
+            }
+        }
+
+        if (count >= 5) {
+            return player; // 找到胜利者
+        }
+    }
+
+    return null; // 没有胜利者
 }
 
 // 绑定 WebSocket 到 HTTP 服务器

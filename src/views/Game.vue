@@ -28,7 +28,8 @@
 
           <!-- 按钮 -->
           <div class="button-group">
-            <el-button type="primary" @click="resetGame" :disabled="gameOver">Reset Game</el-button>
+            <!-- 只有游戏结束后才能重置游戏 -->
+            <el-button type="primary" @click="resetGame" :disabled="!gameOver">Reset Game</el-button>
           </div>
 
           <!-- 显示胜利信息 -->
@@ -53,116 +54,69 @@
 
 <script>
 import { ref } from 'vue';
-import UserCard from '@/components/UserCard.vue';
-import {ElButton, ElMessage} from 'element-plus';
+import { ElMessage } from 'element-plus';
 import NavBar from '@/components/NavBar.vue';
 import router from '@/router';
+import UserCard from '@/components/UserCard.vue';
 
 export default {
   name: 'Game',
-  components: { UserCard, ElButton, NavBar },
-
+  components: { UserCard, NavBar },
   setup() {
-    const board = ref(Array(15).fill(null).map(() => Array(15).fill(null))); // 初始化棋盘
-    const currentPlayer = ref('X');  // 当前玩家
-    const winner = ref(null);  // 胜利者
-    const gameOver = ref(false);  // 游戏结束标志
-    const roomId = new URLSearchParams(window.location.search).get('room');  // 获取房间ID
+    const board = ref(Array(15).fill(null).map(() => Array(15).fill(null)));
+    const currentPlayer = ref('X');
+    const winner = ref(null);
+    const gameOver = ref(false);
+    const roomId = new URLSearchParams(window.location.search).get('room');
     const userid = localStorage.getItem('userid');
 
-
-    // WebSocket 连接到房间
     const ws = new WebSocket(`ws://localhost:3000/?userid=${userid}&room=${roomId}`);
 
-    // 处理服务器发送的消息
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === 'INIT_BOARD' || data.type === 'UPDATE_BOARD') {
-        board.value = data.board;  // 初始化或更新棋盘
+        board.value = data.board;
       } else if (data.type === 'VICTORY') {
-        winner.value = data.winner;  // 设置胜利者
-        gameOver.value = true;  // 游戏结束
+        winner.value = data.winner;
+        gameOver.value = true;
       } else if (data.type === 'ConnectionDenial') {
-        // 跳转到选择房间页面
         router.push("/roomselection");
         ElMessage.error(data.message);
       }
     };
 
-    // 处理玩家点击棋盘
     const handleCellClick = (row, col) => {
       if (board.value[row][col] === null && !gameOver.value) {
-        board.value[row][col] = currentPlayer.value;  // 更新棋盘
-        currentPlayer.value = currentPlayer.value === 'X' ? 'O' : 'X';  // 切换玩家
+        board.value[row][col] = currentPlayer.value;
+        currentPlayer.value = currentPlayer.value === 'X' ? 'O' : 'X';
 
-        // 发送棋盘更新到服务器
         ws.send(JSON.stringify({
           type: 'MOVE',
           row,
           col,
           player: board.value[row][col],
         }));
-
-        // 检查是否有胜利者
-        checkWinner(row, col);
       }
     };
 
-    // 检查胜利条件
-    const checkWinner = (row, col) => {
-      const player = board.value[row][col];
-      if (
-        checkDirection(row, col, 0, 1, player) ||  // 水平
-        checkDirection(row, col, 1, 0, player) ||  // 垂直
-        checkDirection(row, col, 1, 1, player) ||  // 主对角线
-        checkDirection(row, col, 1, -1, player)    // 副对角线
-      ) {
-        winner.value = player;  // 设置胜利者
-        gameOver.value = true;  // 游戏结束
-        ws.send(JSON.stringify({ type: 'VICTORY', winner: player }));  // 发送胜利消息
-        alert(player + ' wins!');
-      }
-    };
-
-    // 检查某一方向上是否有五个相同的棋子
-    const checkDirection = (row, col, dRow, dCol, player) => {
-      let count = 1;
-      // 检查前方
-      for (let i = 1; i < 5; i++) {
-        const newRow = row + dRow * i;
-        const newCol = col + dCol * i;
-        if (newRow >= 0 && newRow < 15 && newCol >= 0 && newCol < 15 && board.value[newRow][newCol] === player) {
-          count++;
-        } else {
-          break;
-        }
-      }
-      // 检查后方
-      for (let i = 1; i < 5; i++) {
-        const newRow = row - dRow * i;
-        const newCol = col - dCol * i;
-        if (newRow >= 0 && newRow < 15 && newCol >= 0 && newCol < 15 && board.value[newRow][newCol] === player) {
-          count++;
-        } else {
-          break;
-        }
-      }
-      return count >= 5;
-    };
-
-    // 重置游戏
     const resetGame = () => {
-      board.value = Array(15).fill(null).map(() => Array(15).fill(null));  // 清空棋盘
-      currentPlayer.value = 'X';  // 重新设置为 X 开始
-      winner.value = null;  // 清空胜利者
-      gameOver.value = false;  // 游戏继续
-      ws.send(JSON.stringify({ type: 'RESET_GAME' }));  // 发送重置消息
+      // 重置棋盘
+      board.value = Array(15).fill(null).map(() => Array(15).fill(null));
+      currentPlayer.value = 'X'; // 重置为玩家X先行
+      winner.value = null; // 清空胜利者
+      gameOver.value = false; // 设置游戏未结束
+
+      // 发送重置请求给服务器
+      ws.send(JSON.stringify({
+        type: 'RESET_GAME',
+      }));
     };
 
-    return { board, currentPlayer, handleCellClick, resetGame, winner, gameOver };
+    return { board, currentPlayer, handleCellClick, winner, gameOver, resetGame };
   },
 };
 </script>
+
 
 
 <style scoped>
