@@ -230,25 +230,24 @@ wss.on('connection', async (ws, req) => {
         if (data.type === 'MOVE') {
             // 更新棋盘状态
             if (roomList.has(Number(roomId))) {
-                console.log(roomList.get(Number(roomId)).playerX);
-                console.log(roomList.get(Number(roomId)).playerY);
-                console.log(data.player);
-                if (roomList.get(Number(roomId)).playing != data.player) {
+                if (roomList.get(Number(roomId)).playerY == '') {
+                    // 如果不是当前无玩家加入，无法落子
+                    ws.send(JSON.stringify({ type: 'GAME_TAG', message: '没有玩家加入房间，无法落子...'}));
+                }
+                else if (roomList.get(Number(roomId)).playing != data.player) {
                     // 如果不是当前玩家的回合，无法落子
                     ws.send(JSON.stringify({ type: 'GAME_TAG', message: '当前不是你的回合，无法落子...'}));
                 } else {
                     roomList.get(Number(roomId)).boards[data.row][data.col] = data.player == hostUserId ? 'X' : 'O';
                     roomList.get(Number(roomId)).playing = data.player == roomList.get(Number(roomId)).playerX ? roomList.get(Number(roomId)).playerY : roomList.get(Number(roomId)).playerX;
+                    // 广播棋盘更新
+                    broadcastToRoom(roomId, { type: 'UPDATE_BOARD', board: roomList.get(Number(roomId)).boards });
                     // 判断是否有胜利者
-                    const winner = checkWinner(roomId, data.row, data.col, data.player);
+                    const winner = checkWinner(roomId, data.row, data.col, data.player == hostUserId ? 'X' : 'O');
                     if (winner) {
                         // 广播胜利信息
                         broadcastToRoom(roomId, { type: 'VICTORY', winner })
-                        return;
                     }
-
-                    // 广播棋盘更新
-                    broadcastToRoom(roomId, { type: 'UPDATE_BOARD', board: roomList.get(Number(roomId)).boards });
                 }
             }
         }
@@ -278,7 +277,7 @@ function broadcastToRoom(roomId, message) {
 
 // 胜利判断函数
 function checkWinner(roomId, row, col, player) {
-    if (!roomList.get(Number(roomId))) return null;
+    if (!roomList.has(Number(roomId))) return null;
     const directions = [
         [0, 1], // 水平
         [1, 0], // 垂直
