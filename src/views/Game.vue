@@ -53,8 +53,8 @@
 </template>
 
 <script>
-import { ref } from 'vue';
-import { ElMessage } from 'element-plus';
+import {onUnmounted, ref} from 'vue';
+import {ElButton, ElMessage} from 'element-plus';
 import NavBar from '@/components/NavBar.vue';
 import router from '@/router';
 import UserCard from '@/components/UserCard.vue';
@@ -111,6 +111,10 @@ export default {
         type: 'RESET_GAME',
       }));
     };
+
+    onUnmounted(() => {
+      ws.close();
+    });
 
     return { board, currentPlayer, handleCellClick, winner, gameOver, resetGame };
   },
