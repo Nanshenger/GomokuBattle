@@ -7,7 +7,7 @@
       <!-- 左侧侧边栏 -->
       <el-aside width="300px">
         <div>
-          <UserCard :user="{ name: username, email: email }" />
+          <UserCard :user="user1" />
           <UserCard :user="user2" />
         </div>
       </el-aside>
@@ -74,6 +74,15 @@ export default {
 
     const ws = new WebSocket(`ws://localhost:3000/?userid=${userid}&room=${roomId}`);
 
+    // 初始化 user1 和 user2 为响应式对象
+    const user1 = ref({
+      name: '',
+      email: ''
+    });
+    const user2 = ref({
+      name: '',
+      email: ''
+    });
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === 'INIT_BOARD' || data.type === 'UPDATE_BOARD') {
@@ -86,7 +95,14 @@ export default {
         ElMessage.error(data.message);
       } else if (data.type === 'GAME_TAG') {
         ElMessage.error(data.message);
+      } else if (data.type === 'Player_Info') {
+        console.log(data);
+        user1.name = data.playerXName;
+        user1.email = data.playerXEmail;
+        user2.name = data.playerYName;
+        user2.email = data.playerYEmail;
       }
+
     };
 
     const handleCellClick = (row, col) => {
@@ -117,7 +133,7 @@ export default {
       ws.close();
     });
 
-    return { board, currentPlayer, handleCellClick, winner, gameOver, resetGame, username, email, router};
+    return { board, currentPlayer, handleCellClick, winner, gameOver, resetGame, username, email, router, user1, user2 };
   },
 };
 </script>

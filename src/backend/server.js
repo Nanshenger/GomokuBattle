@@ -133,6 +133,27 @@ app.post("/addRoom", async (req, res) => {
             room.playerY = userid;
             room.matchId = result.insertId;  // 绑定matchId
             room.playerCount = room.playerCount + 1;
+            // 在数据库中查询玩家的信息
+            const [userX] = await db.execute(
+                `SELECT username, nickname, email, sex
+                 FROM users
+                 WHERE userid =?`,
+                [hostUserId]
+            );
+            const [userY] = await db.execute(
+                `SELECT username, nickname, email, sex
+                 FROM users
+                 WHERE userid =?`,
+                [userid]
+            );
+            console.log('发了')
+            // 把玩家的资料信息发送给客户端
+            broadcastToRoom(roomId, { type: 'Player_Info', roomId: roomId, playerX: hostUserId, playerY: userid, 
+                playerXName: userX[0].username, playerYName: userY[0].username, 
+                playerXNickname: userX[0].nickname, playerYNickname: userY[0].nickname,
+                playerXEmail: userX[0].email, playerYEmail: userY[0].email,
+                playerXSex: userX[0].sex, playerYSex: userY[0].sex
+              })
         }
         return res.json({ success: true });
     } catch (err) {
