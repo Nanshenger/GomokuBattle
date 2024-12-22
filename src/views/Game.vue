@@ -6,10 +6,8 @@
       <!-- 左侧侧边栏 -->
       <el-aside width="300px">
         <div>
-          <UserCard :user="user1" />
+          <UserCard :user="{ name: username, email: email }" />
           <UserCard :user="user2" />
-          <UserCard :user="user3" />
-          <UserCard :user="user4" />
         </div>
       </el-aside>
 
@@ -44,8 +42,6 @@
         <div>
           <UserCard :user="user1" />
           <UserCard :user="user2" />
-          <UserCard :user="user3" />
-          <UserCard :user="user4" />
         </div>
       </el-aside>
     </el-container>
@@ -53,8 +49,8 @@
 </template>
 
 <script>
-import {onUnmounted, ref} from 'vue';
-import {ElButton, ElMessage} from 'element-plus';
+import { onUnmounted, ref } from 'vue';
+import { ElButton, ElMessage } from 'element-plus';
 import NavBar from '@/components/NavBar.vue';
 import router from '@/router';
 import UserCard from '@/components/UserCard.vue';
@@ -69,6 +65,8 @@ export default {
     const gameOver = ref(false);
     const roomId = new URLSearchParams(window.location.search).get('room');
     const userid = localStorage.getItem('userid');
+    const username = localStorage.getItem('username') || 'Guest'; // 获取localStorage中的用户名，默认值为'Guest'
+    const email = localStorage.getItem('email') || 'example@example.com'; // 获取localStorage中的邮箱
 
     const ws = new WebSocket(`ws://localhost:3000/?userid=${userid}&room=${roomId}`);
 
@@ -115,7 +113,7 @@ export default {
       ws.close();
     });
 
-    return { board, currentPlayer, handleCellClick, winner, gameOver, resetGame };
+    return { board, currentPlayer, handleCellClick, winner, gameOver, resetGame, username, email };
   },
 };
 </script>

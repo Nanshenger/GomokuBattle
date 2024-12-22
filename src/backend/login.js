@@ -19,8 +19,9 @@ router.post('/', async (req, res) => {
 
         // 直接比较密码（明文）
         if (user.password === password) {
-            const { userid, username } = user;
-            res.json({ success: true, message: '登录成功', data: { userid, username } });
+            const { userid, username, email, nickname, sex, game_played, games_won, coins, created_at, last_login, permission_level } = user;
+            console.log(user)
+            res.json({ success: true, message: '登录成功', data: { userid, username, email, nickname, sex, game_played, games_won, coins, created_at, last_login, permission_level } });
         } else {
             res.json({ success: false, message: '密码错误' });
         }

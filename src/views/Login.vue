@@ -63,6 +63,14 @@ export default {
               // 保存用户名到 localStorage
               localStorage.setItem("username", this.loginForm.username);
               localStorage.setItem("userid", response.data.data.userid);
+              localStorage.setItem("email", response.data.data.email);
+              localStorage.setItem("nickname", response.data.data.nickname);
+              localStorage.setItem("sex", response.data.data.sex);
+              localStorage.setItem("games_played", response.data.data.games_played);
+              localStorage.setItem("games_won", response.data.data.games_won);
+              localStorage.setItem("coins", response.data.data.coins);
+              
+
               // 跳转到选择房间页面
               this.$router.push("/roomselection");
             } else {
