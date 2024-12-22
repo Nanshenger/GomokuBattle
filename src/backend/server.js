@@ -133,28 +133,8 @@ app.post("/addRoom", async (req, res) => {
             room.playerY = userid;
             room.matchId = result.insertId;  // 绑定matchId
             room.playerCount = room.playerCount + 1;
-            // 在数据库中查询玩家的信息
-            const [userX] = await db.execute(
-                `SELECT username, nickname, email, sex
-                 FROM users
-                 WHERE userid =?`,
-                [hostUserId]
-            );
-            const [userY] = await db.execute(
-                `SELECT username, nickname, email, sex
-                 FROM users
-                 WHERE userid =?`,
-                [userid]
-            );
-            console.log('发了')
-            // 把玩家的资料信息发送给客户端
-            broadcastToRoom(roomId, { type: 'Player_Info', roomId: roomId, playerX: hostUserId, playerY: userid, 
-                playerXName: userX[0].username, playerYName: userY[0].username, 
-                playerXNickname: userX[0].nickname, playerYNickname: userY[0].nickname,
-                playerXEmail: userX[0].email, playerYEmail: userY[0].email,
-                playerXSex: userX[0].sex, playerYSex: userY[0].sex
-              })
         }
+
         return res.json({ success: true });
     } catch (err) {
         console.error('玩家' + userid + + '，加入房间失败:', err.message);
@@ -249,6 +229,34 @@ wss.on('connection', async (ws, req) => {
     // 将当前房间的棋盘信息发送给客户端
     if (roomList.has(Number(roomId))) {
         ws.send(JSON.stringify({ type: 'INIT_BOARD', board: roomList.get(Number(roomId)).boards }));
+        // 在数据库中查询玩家的信息
+        const [userX] = await db.execute(
+            `SELECT username, nickname, email, sex
+             FROM users
+             WHERE userid =?`,
+            [hostUserId]
+        );
+        const [userY] = await db.execute(
+            `SELECT username, nickname, email, sex
+             FROM users
+             WHERE userid =?`,
+            [userid]
+        );
+
+        // 把玩家的资料信息发送给客户端
+        broadcastToRoom(roomId, {
+            type: 'Player_Info',
+            roomId: roomId,
+            playerX: hostUserId, playerY: userid,
+            playerXName: userX[0].username,
+            playerYName: userY[0].username,
+            playerXNickname: userX[0].nickname,
+            playerYNickname: userY[0].nickname,
+            playerXEmail: userX[0].email,
+            playerYEmail: userY[0].email,
+            playerXSex: userX[0].sex,
+            playerYSex: userY[0].sex
+        })
     }
 
     // 监听来自客户端的棋盘更新消息
@@ -301,7 +309,7 @@ wss.on('connection', async (ws, req) => {
                             `UPDATE rooms
                              SET room_status = ?
                              WHERE room_id = ?`,
-                            ['finished' , roomId]  // winner 是胜利者的玩家 ID
+                            ['finished', roomId]  // winner 是胜利者的玩家 ID
                         );
                     }
                     // 没有任何人获胜，切换回合
@@ -341,7 +349,7 @@ wss.on('connection', async (ws, req) => {
 // 房间更新广播
 function broadcastToRoom(roomId, message) {
     wss.clients.forEach((client) => {
-        if (client.roomId === roomId && client.readyState === client.OPEN) {
+        if (client.roomId == roomId && client.readyState === client.OPEN) {
             client.send(JSON.stringify(message));
         }
     });

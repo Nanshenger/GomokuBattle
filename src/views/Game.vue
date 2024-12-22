@@ -96,13 +96,11 @@ export default {
       } else if (data.type === 'GAME_TAG') {
         ElMessage.error(data.message);
       } else if (data.type === 'Player_Info') {
-        console.log(data);
-        user1.name = data.playerXName;
-        user1.email = data.playerXEmail;
-        user2.name = data.playerYName;
-        user2.email = data.playerYEmail;
+        user1.value.name = data.playerXName;
+        user1.value.email = data.playerXEmail;
+        user2.value.name = data.playerYName;
+        user2.value.email = data.playerYEmail;
       }
-
     };
 
     const handleCellClick = (row, col) => {
