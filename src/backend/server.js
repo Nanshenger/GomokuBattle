@@ -76,7 +76,7 @@ app.post('/rooms', async (req, res) => {
         );
 
         // 将房间信息存入系统 先手默认房主
-        var room = { playerX: '', playerY: '', playerCount: 0, roomId: 0, boards: {}, playing: userId };
+        var room = { playerX: '', playerY: '', playerCount: 0, roomId: 0, boards: {}, playing: userId, matchId: 0 };
         room.playerX = roomRows[0].host_user_id;
         room.roomId = roomRows[0].room_id
         room.playerCount = 1;
@@ -123,8 +123,15 @@ app.post("/addRoom", async (req, res) => {
              WHERE room_id = ?`,
                 [playerCount + 1, userid, roomId]
             )
+            // 数据库插入新的match记录
+            const [result] = await db.execute(
+                `INSERT INTO matches (room_id, player_1_id, player_2_id)
+                 VALUES (?, ?, ?)`,
+                [roomId, hostUserId, userid]
+            );
             var room = roomList.get(Number(roomId));
             room.playerY = userid;
+            room.matchId = result.insertId;  // 绑定matchId
             room.playerCount = room.playerCount + 1;
         }
         return res.json({ success: true });
@@ -239,12 +246,35 @@ wss.on('connection', async (ws, req) => {
                     ws.send(JSON.stringify({ type: 'GAME_TAG', message: '当前不是你的回合，无法落子...' }));
                 } else {
                     roomList.get(Number(roomId)).boards[data.row][data.col] = data.player == hostUserId ? 'X' : 'O';
+                    // 插入游戏记录到数据库
+                    try {
+                        db.execute(
+                            `INSERT INTO game_moves (match_id, player_id, x, y)
+                                             VALUES (?, ?, ?, ?)`,
+                            [roomList.get(Number(roomId)).matchId, roomList.get(Number(roomId)).playing, data.row, data.col]
+                        );
+                    } catch (err) {
+                        console.error("插入游戏记录失败", err);
+                        return;
+                    }
                     roomList.get(Number(roomId)).playing = data.player == roomList.get(Number(roomId)).playerX ? roomList.get(Number(roomId)).playerY : roomList.get(Number(roomId)).playerX;
+
                     // 广播棋盘更新
                     broadcastToRoom(roomId, { type: 'UPDATE_BOARD', board: roomList.get(Number(roomId)).boards });
                     // 判断是否有胜利者
                     const winner = checkWinner(roomId, data.row, data.col, data.player == hostUserId ? 'X' : 'O');
                     if (winner) {
+                        try {
+                            db.execute(
+                                `UPDATE matches
+                                 SET winner_id = ?
+                                 WHERE match_id = ?`,
+                                [roomList.get(Number(roomId)).playing, roomList.get(Number(roomId)).matchId]  // winner 是胜利者的玩家 ID
+                            );
+                        } catch (err) {
+                            console.error("更新胜利者失败", err);
+                            return;
+                        }
                         // 广播胜利信息
                         broadcastToRoom(roomId, { type: 'VICTORY', winner })
                     }
@@ -256,6 +286,13 @@ wss.on('connection', async (ws, req) => {
             if (roomList.has(Number(roomId))) {
                 roomList.get(Number(roomId)).boards = Array(15).fill(null).map(() => Array(15).fill(null));
                 broadcastToRoom(roomId, { type: 'RESTART', board: roomList.get(Number(roomId)).boards });
+                // 数据库插入新的match记录
+                const [result] = db.execute(
+                    `INSERT INTO matches (room_id, player_1_id, player_2_id)
+                 VALUES (?, ?, ?)`,
+                    [roomId, hostUserId, userid]
+                );
+                room.matchId = result.insertId;  // 绑定matchId
             }
         }
     });
