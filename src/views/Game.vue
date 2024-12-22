@@ -1,6 +1,7 @@
 <template>
   <!-- 引入全局导航栏 -->
   <NavBar />
+
   <div class="common-layout">
     <el-container>
       <!-- 左侧侧边栏 -->
@@ -26,8 +27,11 @@
 
           <!-- 按钮 -->
           <div class="button-group">
-            <!-- 只有游戏结束后才能重置游戏 -->
-            <el-button type="primary" @click="resetGame" :disabled="!gameOver">Reset Game</el-button>
+            <!-- 只有游戏结束后才能重置游戏(ps: 现在已经搁置了这个重置因为有点bug) -->
+            <!-- <el-button type="primary" @click="resetGame" :disabled="!gameOver">Reset Game</el-button> -->
+            <!-- 退出游戏按钮 -->
+            <el-button type="primary" @click="router.push('/roomselection')" :disabled="!gameOver">退出游戏</el-button>
+
           </div>
 
           <!-- 显示胜利信息 -->
@@ -113,7 +117,7 @@ export default {
       ws.close();
     });
 
-    return { board, currentPlayer, handleCellClick, winner, gameOver, resetGame, username, email };
+    return { board, currentPlayer, handleCellClick, winner, gameOver, resetGame, username, email, router};
   },
 };
 </script>

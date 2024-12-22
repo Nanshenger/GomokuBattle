@@ -276,6 +276,12 @@ wss.on('connection', async (ws, req) => {
                         }
                         // 广播胜利信息
                         broadcastToRoom(roomId, { type: 'VICTORY', winner })
+                        db.execute(
+                            `UPDATE rooms
+                             SET room_status = ?
+                             WHERE room_id = ?`,
+                            ['finished' , roomId]  // winner 是胜利者的玩家 ID
+                        );
                     }
                     // 没有任何人获胜，切换回合
                     roomList.get(Number(roomId)).playing = data.player == roomList.get(Number(roomId)).playerX ? roomList.get(Number(roomId)).playerY : roomList.get(Number(roomId)).playerX;
@@ -283,6 +289,7 @@ wss.on('connection', async (ws, req) => {
                 }
             }
         }
+        // 标记一下有bug暂时先不解决并且隐藏这个功能
         if (data.type === 'RESET_GAME') {
             // 重置棋盘
             if (roomList.has(Number(roomId))) {
