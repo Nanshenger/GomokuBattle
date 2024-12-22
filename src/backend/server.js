@@ -231,7 +231,7 @@ wss.on('connection', async (ws, req) => {
     }
 
     // 监听来自客户端的棋盘更新消息
-    ws.on('message', (message) => {
+    ws.on('message', async (message) => {
         const data = JSON.parse(message);
 
         if (data.type === 'MOVE') {
@@ -257,7 +257,6 @@ wss.on('connection', async (ws, req) => {
                         console.error("插入游戏记录失败", err);
                         return;
                     }
-                    roomList.get(Number(roomId)).playing = data.player == roomList.get(Number(roomId)).playerX ? roomList.get(Number(roomId)).playerY : roomList.get(Number(roomId)).playerX;
 
                     // 广播棋盘更新
                     broadcastToRoom(roomId, { type: 'UPDATE_BOARD', board: roomList.get(Number(roomId)).boards });
@@ -278,6 +277,9 @@ wss.on('connection', async (ws, req) => {
                         // 广播胜利信息
                         broadcastToRoom(roomId, { type: 'VICTORY', winner })
                     }
+                    // 没有任何人获胜，切换回合
+                    roomList.get(Number(roomId)).playing = data.player == roomList.get(Number(roomId)).playerX ? roomList.get(Number(roomId)).playerY : roomList.get(Number(roomId)).playerX;
+
                 }
             }
         }
@@ -287,12 +289,17 @@ wss.on('connection', async (ws, req) => {
                 roomList.get(Number(roomId)).boards = Array(15).fill(null).map(() => Array(15).fill(null));
                 broadcastToRoom(roomId, { type: 'RESTART', board: roomList.get(Number(roomId)).boards });
                 // 数据库插入新的match记录
-                const [result] = db.execute(
-                    `INSERT INTO matches (room_id, player_1_id, player_2_id)
-                 VALUES (?, ?, ?)`,
-                    [roomId, hostUserId, userid]
-                );
-                room.matchId = result.insertId;  // 绑定matchId
+                try {
+                    const [result] = await db.execute(
+                        `INSERT INTO matches (room_id, player_1_id, player_2_id)
+                         VALUES (?, ?, ?)`,
+                        [roomId, hostUserId, userid]
+                    );
+                    console.log(result);  // 打印检查返回值的结构
+                    roomList.get(Number(roomId)).matchId = result.insertId;  // 绑定 matchId
+                } catch (error) {
+                    console.error('数据库操作失败:', error);
+                }
             }
         }
     });
