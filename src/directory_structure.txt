@@ -1,7 +1,8 @@
 App.vue
-.\assets
 .\backend
   db.js
+  login.js
+  register.js
   server.js
 .\components
   NavBar.vue
@@ -13,6 +14,7 @@ PrintStructure.py
 .\router
   index.js
 .\views
+  About.vue
   Game.vue
   Login.vue
   Profile.vue

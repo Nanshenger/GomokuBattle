@@ -103,6 +103,8 @@ app.post("/addRoom", async (req, res) => {
              WHERE room_id = ?`,
             [roomId]
         );
+        const hostUserId = result[0].host_user_id;
+        const playerId = result[0].player_id;
         const playerCount = result[0].player_count;
         const roomStatus = result[0].room_status;
         if (roomStatus === 'finished') {
@@ -258,10 +260,11 @@ wss.on('connection', async (ws, req) => {
 });
 
 // 房间更新广播
-function broadcastToRoom(roomId, {type, message}) {
+// 房间更新广播
+function broadcastToRoom(roomId, message) {
     wss.clients.forEach((client) => {
         if (client.roomId === roomId && client.readyState === client.OPEN) {
-            client.send(JSON.stringify({type, message}));
+            client.send(JSON.stringify(message));
         }
     });
 }
