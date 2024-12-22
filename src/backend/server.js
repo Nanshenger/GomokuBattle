@@ -9,7 +9,6 @@ import register from './register.js';  // 引入 register 路由
 // 初始化 express 应用
 const app = express();
 const port = 3000; // HTTP 服务器端口
-const roomBoards = {};  // 保存房间的棋盘信息
 
 const roomList = new Map();
 
@@ -70,22 +69,23 @@ app.post('/rooms', async (req, res) => {
             [userId]
         );
 
-        // 初始化棋盘
-        const board = Array(15).fill(null).map(() => Array(15).fill(null));
-        roomBoards[insertResult.insertId] = board;  // 将棋盘存入 roomBoards
-
         // 返回创建的房间信息
         const [roomRows] = await db.execute(
             'SELECT room_id, host_user_id FROM rooms WHERE room_id = ?',
             [insertResult.insertId]
         );
 
-        // 将房间信息存入系统
-        var room = { playerX: '', playerY: '', playerCount: 0, roomId: 0};
+        // 将房间信息存入系统 先手默认房主
+        var room = { playerX: '', playerY: '', playerCount: 0, roomId: 0, boards: {}, playing: userId };
         room.playerX = roomRows[0].host_user_id;
         room.roomId = roomRows[0].room_id
         room.playerCount = 1;
-        roomList.set(room.roomId, room);
+
+        // 初始化棋盘
+        const board = Array(15).fill(null).map(() => Array(15).fill(null));
+        room.boards = board;  // 将棋盘存入 roomBoards
+
+        roomList.set(Number(room.roomId), room);
 
         res.status(201).json(roomRows[0]); // 返回新创建的房间信息
     } catch (error) {
@@ -108,12 +108,12 @@ app.post("/addRoom", async (req, res) => {
         const playerCount = result[0].player_count;
         const roomStatus = result[0].room_status;
         if (roomStatus === 'finished') {
-            return res.json({success: false, message: '房间已关闭，无法加入...'});
+            return res.json({ success: false, message: '房间已关闭，无法加入...' });
         }
         if (hostUserId != userid && userid != playerId && playerCount === 2) {
-            return res.json({success: false, message: '房间人满，无法加入....'});
+            return res.json({ success: false, message: '房间人满，无法加入....' });
         }
-        if (playerCount < 2) {
+        if (playerCount < 2 && hostUserId != userid) {
             // 修改房间人数
             await db.execute(
                 `update rooms
@@ -123,11 +123,11 @@ app.post("/addRoom", async (req, res) => {
              WHERE room_id = ?`,
                 [playerCount + 1, userid, roomId]
             )
-            var room = roomList[roomId];
-            room.playerY = playerId;
+            var room = roomList.get(Number(roomId));
+            room.playerY = userid;
             room.playerCount = room.playerCount + 1;
         }
-        return res.json({success: true});
+        return res.json({ success: true });
     } catch (err) {
         console.error('玩家' + userid + + '，加入房间失败:', err.message);
         res.json({ success: false, message: '服务错误' });
@@ -152,10 +152,10 @@ const userExit = async (userid, roomId) => {
              WHERE room_id = ?`,
             [roomId]
         )
-        broadcastToRoom(roomId, {type: "ConnectionDenial", message: "房间已解散..."});
-        roomList.delete(roomId);
+        broadcastToRoom(roomId, { type: "ConnectionDenial", message: "房间已解散..." });
+        roomList.delete(Number(roomId));
     } else if (userid == playerId) {
-        var room = roomList.get(roomId);
+        var room = roomList.get(Number(roomId));
         if (room != undefined) {
             await db.execute(
                 `update rooms
@@ -166,7 +166,7 @@ const userExit = async (userid, roomId) => {
                 [playerCount - 1, null, roomId]
             )
             room.playerCount = room.playerCount - 1;
-            broadcastToRoom(roomId, {type: "UserExit", message: "有玩家退出游戏..."});
+            broadcastToRoom(roomId, { type: "UserExit", message: "有玩家退出游戏..." });
         }
     }
 }
@@ -193,7 +193,7 @@ wss.on('connection', async (ws, req) => {
     const playerId = result[0].player_id;
     const hostUserId = result[0].host_user_id;
     if (userid != hostUserId && userid != playerId) {
-        ws.send(JSON.stringify({type: 'ConnectionDenial', message: '拒绝连接'}));
+        ws.send(JSON.stringify({ type: 'ConnectionDenial', message: '拒绝连接' }));
         ws.close();
         return;
     }
@@ -219,8 +219,8 @@ wss.on('connection', async (ws, req) => {
     console.log(`客户端 ${userid}，已连接到房间: ${roomId}`);
 
     // 将当前房间的棋盘信息发送给客户端
-    if (roomBoards[roomId]) {
-        ws.send(JSON.stringify({ type: 'INIT_BOARD', board: roomBoards[roomId] }));
+    if (roomList.has(Number(roomId))) {
+        ws.send(JSON.stringify({ type: 'INIT_BOARD', board: roomList.get(Number(roomId)).boards }));
     }
 
     // 监听来自客户端的棋盘更新消息
@@ -229,26 +229,33 @@ wss.on('connection', async (ws, req) => {
 
         if (data.type === 'MOVE') {
             // 更新棋盘状态
-            if (roomBoards[roomId]) {
-                roomBoards[roomId][data.row][data.col] = data.player;
-
-                // 判断是否有胜利者
-                const winner = checkWinner(roomId, data.row, data.col, data.player);
-                if (winner) {
-                    // 广播胜利信息
-                    broadcastToRoom(roomId, { type: 'VICTORY', winner });
-                    return;
+            if (roomList.has(Number(roomId))) {
+                if (roomList.get(Number(roomId)).playerY == '') {
+                    // 如果不是当前无玩家加入，无法落子
+                    ws.send(JSON.stringify({ type: 'GAME_TAG', message: '没有玩家加入房间，无法落子...' }));
                 }
-
-                // 广播棋盘更新
-                broadcastToRoom(roomId, { type: 'UPDATE_BOARD', board: roomBoards[roomId] });
+                else if (roomList.get(Number(roomId)).playing != data.player) {
+                    // 如果不是当前玩家的回合，无法落子
+                    ws.send(JSON.stringify({ type: 'GAME_TAG', message: '当前不是你的回合，无法落子...' }));
+                } else {
+                    roomList.get(Number(roomId)).boards[data.row][data.col] = data.player == hostUserId ? 'X' : 'O';
+                    roomList.get(Number(roomId)).playing = data.player == roomList.get(Number(roomId)).playerX ? roomList.get(Number(roomId)).playerY : roomList.get(Number(roomId)).playerX;
+                    // 广播棋盘更新
+                    broadcastToRoom(roomId, { type: 'UPDATE_BOARD', board: roomList.get(Number(roomId)).boards });
+                    // 判断是否有胜利者
+                    const winner = checkWinner(roomId, data.row, data.col, data.player == hostUserId ? 'X' : 'O');
+                    if (winner) {
+                        // 广播胜利信息
+                        broadcastToRoom(roomId, { type: 'VICTORY', winner })
+                    }
+                }
             }
         }
         if (data.type === 'RESET_GAME') {
             // 重置棋盘
-            if (roomBoards[roomId]) {
-                roomBoards[roomId] = Array(15).fill(null).map(() => Array(15).fill(null));
-                broadcastToRoom(roomId, { type: 'RESTART', board: roomBoards[roomId] });
+            if (roomList.has(Number(roomId))) {
+                roomList.get(Number(roomId)).boards = Array(15).fill(null).map(() => Array(15).fill(null));
+                broadcastToRoom(roomId, { type: 'RESTART', board: roomList.get(Number(roomId)).boards });
             }
         }
     });
@@ -260,7 +267,6 @@ wss.on('connection', async (ws, req) => {
 });
 
 // 房间更新广播
-// 房间更新广播
 function broadcastToRoom(roomId, message) {
     wss.clients.forEach((client) => {
         if (client.roomId === roomId && client.readyState === client.OPEN) {
@@ -271,7 +277,7 @@ function broadcastToRoom(roomId, message) {
 
 // 胜利判断函数
 function checkWinner(roomId, row, col, player) {
-    if (!roomBoards[roomId]) return null;
+    if (!roomList.has(Number(roomId))) return null;
     const directions = [
         [0, 1], // 水平
         [1, 0], // 垂直
@@ -286,7 +292,7 @@ function checkWinner(roomId, row, col, player) {
         for (let i = 1; i < 5; i++) {
             const newRow = row + dRow * i;
             const newCol = col + dCol * i;
-            if (newRow >= 0 && newRow < 15 && newCol >= 0 && newCol < 15 && roomBoards[roomId][newRow][newCol] === player) {
+            if (newRow >= 0 && newRow < 15 && newCol >= 0 && newCol < 15 && roomList.get(Number(roomId)).boards[newRow][newCol] === player) {
                 count++;
             } else {
                 break;
@@ -297,7 +303,7 @@ function checkWinner(roomId, row, col, player) {
         for (let i = 1; i < 5; i++) {
             const newRow = row - dRow * i;
             const newCol = col - dCol * i;
-            if (newRow >= 0 && newRow < 15 && newCol >= 0 && newCol < 15 && roomBoards[roomId][newRow][newCol] === player) {
+            if (newRow >= 0 && newRow < 15 && newCol >= 0 && newCol < 15 && roomList.get(Number(roomId)).boards[newRow][newCol] === player) {
                 count++;
             } else {
                 break;

@@ -82,19 +82,18 @@ export default {
       } else if (data.type === 'ConnectionDenial') {
         router.push("/roomselection");
         ElMessage.error(data.message);
+      } else if (data.type === 'GAME_TAG') {
+        ElMessage.error(data.message);
       }
     };
 
     const handleCellClick = (row, col) => {
       if (board.value[row][col] === null && !gameOver.value) {
-        board.value[row][col] = currentPlayer.value;
-        currentPlayer.value = currentPlayer.value === 'X' ? 'O' : 'X';
-
         ws.send(JSON.stringify({
           type: 'MOVE',
           row,
           col,
-          player: board.value[row][col],
+          player: userid,
         }));
       }
     };
