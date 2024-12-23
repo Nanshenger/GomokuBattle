@@ -41,11 +41,19 @@
         </div>
       </el-main>
 
-      <!-- 右侧侧边栏 -->
       <el-aside width="300px">
-        <div>
-            <!-- 此处为聊天框 -->
-             
+        <div class="chat-box">
+          <!-- 打招呼按钮 -->
+          <div class="chat-actions">
+            <el-button type="primary" @click="sendGreeting">打招呼</el-button>
+          </div>
+          <br>
+          <!-- 消息区域 -->
+          <div class="messages">
+            <div v-for="(message, index) in messages" :key="index" class="message">
+              {{ message }}
+            </div>
+          </div>
         </div>
       </el-aside>
     </el-container>
@@ -71,6 +79,7 @@ export default {
     const userid = localStorage.getItem('userid');
     const username = localStorage.getItem('username') || 'Guest'; // 获取localStorage中的用户名，默认值为'Guest'
     const email = localStorage.getItem('email') || 'example@example.com'; // 获取localStorage中的邮箱
+    const messages = ref([]); // 用于存储聊天消息
 
     const ws = new WebSocket(`ws://localhost:3000/?userid=${userid}&room=${roomId}`);
 
@@ -100,6 +109,8 @@ export default {
         user1.value.email = data.playerXEmail;
         user2.value.name = data.playerYName;
         user2.value.email = data.playerYEmail;
+      } else if (data.type === 'CHAT_MESSAGE') {
+        messages.value.push(data.message); // 接收聊天消息并添加到消息数组
       }
     };
 
@@ -113,6 +124,17 @@ export default {
         }));
       }
     };
+
+    // 新增：发送固定消息的函数
+    const sendGreeting = () => {
+      const greetingMessage = `${username}：你好！`; // 固定的问候消息
+      ws.send(JSON.stringify({
+        type: 'CHAT_MESSAGE',
+        sender: localStorage.getItem('userid'),
+        message: greetingMessage,
+      }));
+    };
+
 
     const resetGame = () => {
       // 重置棋盘
@@ -131,7 +153,7 @@ export default {
       ws.close();
     });
 
-    return { board, currentPlayer, handleCellClick, winner, gameOver, resetGame, username, email, router, user1, user2 };
+    return { board, currentPlayer, handleCellClick, winner, gameOver, resetGame, username, email, router, user1, user2, messages, sendGreeting };
   },
 };
 </script>
@@ -208,5 +230,33 @@ export default {
   text-align: center;
   margin-top: 20px;
   color: green;
+}
+
+.chat-box {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  padding: 5px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.message {
+  margin: 5px 0;
+}
+
+.chat-actions {
+  text-align: center;
 }
 </style>

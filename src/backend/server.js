@@ -31,7 +31,9 @@ app.get('/rooms', async (req, res) => {
             SET room_status = 'finished' 
             WHERE room_status = 'waiting' 
             AND TIMESTAMPDIFF(MINUTE, created_at, NOW()) > 10
+        `);
 
+        await db.execute(`
             UPDATE rooms 
             SET room_status = 'finished' 
             WHERE room_status = 'playing' 
@@ -140,7 +142,7 @@ app.post("/addRoom", async (req, res) => {
             room.playerY = userid;
             room.matchId = result.insertId;  // 绑定matchId
             room.playerCount = room.playerCount + 1;
-            
+
             // 对数据库的表users进行操作： 将2个玩家的games_played + 1
             await db.execute(
                 `UPDATE users
@@ -345,6 +347,31 @@ wss.on('connection', async (ws, req) => {
                 }
             }
         }
+        // 接收房间发来的CHAT_MESSAGE的消息并广播
+        if (data.type === 'CHAT_MESSAGE') {
+            broadcastToRoom(roomId, { type: 'CHAT_MESSAGE', message: data.message, userid: data.userid });
+
+            // 插入聊天记录到数据库
+            try {
+                // 在控制台输出要插入的值
+                console.log("插入的房间 ID:", roomId);
+                console.log("插入的用户 ID:", data.sender);
+                console.log("插入的消息内容:", data.message);
+
+
+                // 在数据库中插入聊天记录
+                db.execute(
+                    `INSERT INTO chat_messages (room_id, user_id, content)
+                     VALUES (?,?,?)`,
+                    [roomId, data.sender, data.message]
+                );
+            } catch (err) {
+                
+                console.error("插入聊天记录失败", err);
+            }
+        }
+
+
         // 标记一下有bug暂时先不解决并且隐藏这个功能
         if (data.type === 'RESET_GAME') {
             // 重置棋盘
