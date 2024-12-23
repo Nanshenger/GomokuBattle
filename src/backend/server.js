@@ -25,7 +25,7 @@ app.use('/profile', profile);  // 资料读取路由
 // 获取房间列表接口
 app.get('/rooms', async (req, res) => {
     try {
-        // 更新状态为 'finished' 的房间（如果超过10分钟）, 游玩超过600分钟也会强制关闭房间
+        // 更新状态为 'finished' 的房间（如果超过10分钟）, 游玩超过300分钟也会强制关闭房间
         await db.execute(`
             UPDATE rooms 
             SET room_status = 'finished' 
@@ -37,7 +37,7 @@ app.get('/rooms', async (req, res) => {
             UPDATE rooms 
             SET room_status = 'finished' 
             WHERE room_status = 'playing' 
-            AND TIMESTAMPDIFF(MINUTE, created_at, NOW()) > 600
+            AND TIMESTAMPDIFF(MINUTE, created_at, NOW()) > 300
         `);
 
         // 查询房间列表，排除已经是 'finished' 的房间
@@ -366,7 +366,7 @@ wss.on('connection', async (ws, req) => {
                     [roomId, data.sender, data.message]
                 );
             } catch (err) {
-                
+
                 console.error("插入聊天记录失败", err);
             }
         }

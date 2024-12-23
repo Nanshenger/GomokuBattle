@@ -2,6 +2,7 @@ App.vue
 .\backend
   db.js
   login.js
+  profile.js
   register.js
   server.js
 .\components

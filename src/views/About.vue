@@ -13,13 +13,13 @@
             <el-main class="about-main">
                 <el-carousel interval="5000" arrow="always" height="350px" class="carousel">
                     <el-carousel-item>
-                        <img src="https://via.placeholder.com/800x350?text=五子棋游戏" alt="轮播图1">
+                        <img src="../assets/1.png" alt="轮播图1">
                     </el-carousel-item>
                     <el-carousel-item>
-                        <img src="https://via.placeholder.com/800x350?text=游戏特色" alt="轮播图2">
+                        <img src="../assets/2.png" alt="轮播图2">
                     </el-carousel-item>
                     <el-carousel-item>
-                        <img src="https://via.placeholder.com/800x350?text=开始游戏" alt="轮播图3">
+                        <img src="../assets/3.png" alt="轮播图3">
                     </el-carousel-item>
                 </el-carousel>
 
@@ -40,8 +40,8 @@
                     <h2>联系我们</h2>
                     <p>
                         如果你有任何问题，欢迎通过以下方式联系我们：<br>
-                        邮箱: support@wzqgame.com<br>
-                        微信: wzq_game
+                        邮箱: 123456789@QQ.com<br>
+                        微信: 123456789
                     </p>
                 </div>
             </el-main>

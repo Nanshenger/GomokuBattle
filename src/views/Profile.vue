@@ -128,27 +128,69 @@ export default {
 };
 </script>
 
-
 <style scoped>
 .profile-container {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-color: #f5f5f5;
+    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
 }
 
 .profile-card {
     width: 500px;
     padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    background: #fff;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.profile-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
 }
 
 .profile-title {
     text-align: center;
     margin-bottom: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    text-transform: uppercase;
+}
+
+.profile-form {
+    font-size: 14px;
+    color: #606266;
+}
+
+.el-form-item {
+    margin-bottom: 20px;
 }
 
 .stats p {
     margin: 5px 0;
+    font-size: 14px;
+    color: #409eff;
+}
+
+.el-button {
+    margin-right: 10px;
+    border-radius: 8px;
+}
+
+.el-button[type="primary"] {
+    background-color: #409eff;
+    color: #fff;
+}
+
+.el-button[type="success"] {
+    background-color: #67c23a;
+    color: #fff;
+}
+
+.el-button[type="text"] {
+    color: #909399;
 }
 </style>
