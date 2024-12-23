@@ -1,4 +1,3 @@
-// Profile.vue
 <template>
     <!-- 引入全局导航栏 -->
     <NavBar />
@@ -18,7 +17,7 @@
                     <el-input v-model="profileForm.nickname" :disabled="!isEditing" />
                 </el-form-item>
                 <el-form-item label="性别">
-                    <el-radio-group v-model="profileForm.gender" :disabled="!isEditing">
+                    <el-radio-group v-model="profileForm.sex" :disabled="!isEditing">
                         <el-radio label="男">男</el-radio>
                         <el-radio label="女">女</el-radio>
                     </el-radio-group>
@@ -48,7 +47,8 @@
 
 <script>
 import { ElMessage } from 'element-plus';
-import NavBar from '@/components/NavBar.vue'  // 引入 NavBar 组件
+import NavBar from '@/components/NavBar.vue'; // 引入 NavBar 组件
+
 export default {
     name: "Profile",
     components: {
@@ -58,17 +58,60 @@ export default {
         return {
             isEditing: false,
             profileForm: {
-                username: "guest",
-                email: "guest@example.com",
-                nickname: "小明",
-                gender: "男",
-                winRate: 75,
-                matches: 40,
-                wins: 30,
+                username: "",
+                email: "",
+                nickname: "",
+                sex: "未知",
+                winRate: 0,
+                matches: 0,
+                wins: 0,
             },
         };
     },
+    mounted() {
+        this.fetchProfileData(); // 页面加载时获取用户资料
+    },
     methods: {
+        fetchProfileData() {
+            const userid = localStorage.getItem("userid"); // 从 localStorage 中读取 userid
+
+            if (!userid) {
+                console.error("用户ID不存在，请先登录");
+                ElMessage.error("请先登录");
+                return;
+            }
+
+            fetch("http://localhost:3000/profile", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ userid }), // 发送 userid 到服务端
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.success) {
+                        const { username, email, nickname, sex, games_played, games_won } = data.data;
+                        const winRate = games_played > 0 ? Math.round((games_won / games_played) * 100) : 0;
+                        this.profileForm = {
+                            username,
+                            email,
+                            nickname,
+                            sex,
+                            winRate,
+                            matches: games_played,
+                            wins: games_won,
+                        };
+                    } else {
+                        console.error(data.message);
+                        ElMessage.error(data.message);
+                    }
+                })
+                .catch((error) => {
+                    console.error("加载资料失败:", error);
+                    ElMessage.error("加载资料失败，请稍后重试");
+                });
+        },
         enableEdit() {
             this.isEditing = true;
         },
@@ -84,6 +127,7 @@ export default {
     },
 };
 </script>
+
 
 <style scoped>
 .profile-container {

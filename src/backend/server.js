@@ -5,6 +5,7 @@ import bodyParser from 'body-parser';
 import db from './db.js'; // 引入数据库模块
 import login from './login.js';  // 引入 login 路由
 import register from './register.js';  // 引入 register 路由
+import profile from './profile.js';  // 引入 profile 路由
 
 // 初始化 express 应用
 const app = express();
@@ -19,6 +20,7 @@ app.use(bodyParser.json());
 // 使用 login 和 register 路由
 app.use('/login', login);  // 将 login 路由挂载到 /login
 app.use('/register', register);  // 将 register 路由挂载到 /register
+app.use('/profile', profile);  // 资料读取路由
 
 // 获取房间列表接口
 app.get('/rooms', async (req, res) => {
