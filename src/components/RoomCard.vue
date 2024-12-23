@@ -4,7 +4,7 @@
       <p><strong>房间号：</strong>{{ room.room_id }}</p> <!-- 显示房间号 -->
       <p><strong>房主：</strong>{{ room.host }}</p> <!-- 显示房主 -->
       <p>
-        <strong>玩家人数：</strong>{{ room.players }} / {{ room.maxPlayers }}
+        <strong>房间状态：</strong>等待中...
       </p>
     </div>
     <div class="room-actions">

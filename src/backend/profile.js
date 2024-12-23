@@ -34,3 +34,5 @@ router.post('/', async (req, res) => {
         res.status(500).json({ success: false, message: '数据库错误' });
     }
 });
+
+export default router;

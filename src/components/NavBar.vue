@@ -1,7 +1,7 @@
 <template>
     <el-menu :default-active="activePath" class="navbar" mode="horizontal" background-color="#409EFF" text-color="#fff"
         active-text-color="#ffd04b">
-        <el-menu-item index="/game" @click="handleClick('/game')">游 戏</el-menu-item>
+        <!-- <el-menu-item index="/game" @click="handleClick('/game')">游 戏</el-menu-item> -->
 
         <!-- 登录和注册菜单项 -->
         <el-menu-item v-if="!isLoggedIn" index="/login" @click="handleClick('/login')">登 录</el-menu-item>

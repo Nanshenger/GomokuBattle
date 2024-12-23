@@ -44,8 +44,8 @@
       <!-- 右侧侧边栏 -->
       <el-aside width="300px">
         <div>
-          <UserCard :user="user1" />
-          <UserCard :user="user2" />
+            <!-- 此处为聊天框 -->
+             
         </div>
       </el-aside>
     </el-container>

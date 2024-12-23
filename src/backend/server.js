@@ -25,12 +25,17 @@ app.use('/profile', profile);  // 资料读取路由
 // 获取房间列表接口
 app.get('/rooms', async (req, res) => {
     try {
-        // 更新状态为 'finished' 的房间（如果超过10分钟）
+        // 更新状态为 'finished' 的房间（如果超过10分钟）, 游玩超过600分钟也会强制关闭房间
         await db.execute(`
             UPDATE rooms 
             SET room_status = 'finished' 
             WHERE room_status = 'waiting' 
             AND TIMESTAMPDIFF(MINUTE, created_at, NOW()) > 10
+
+            UPDATE rooms 
+            SET room_status = 'finished' 
+            WHERE room_status = 'playing' 
+            AND TIMESTAMPDIFF(MINUTE, created_at, NOW()) > 600
         `);
 
         // 查询房间列表，排除已经是 'finished' 的房间
@@ -135,6 +140,16 @@ app.post("/addRoom", async (req, res) => {
             room.playerY = userid;
             room.matchId = result.insertId;  // 绑定matchId
             room.playerCount = room.playerCount + 1;
+            
+            // 对数据库的表users进行操作： 将2个玩家的games_played + 1
+            await db.execute(
+                `UPDATE users
+                 SET games_played = games_played + 1
+                 WHERE userid =? OR userid =?`,
+                [hostUserId, userid]
+            );
+        } else {
+            return res.json({ success: false, message: '房间已满，无法加入....' });
         }
 
         return res.json({ success: true });
@@ -279,11 +294,13 @@ wss.on('connection', async (ws, req) => {
                     roomList.get(Number(roomId)).boards[data.row][data.col] = data.player == hostUserId ? 'X' : 'O';
                     // 插入游戏记录到数据库
                     try {
+                        // 在数据库中插入落子记录
                         db.execute(
                             `INSERT INTO game_moves (match_id, player_id, x, y)
                                              VALUES (?, ?, ?, ?)`,
                             [roomList.get(Number(roomId)).matchId, roomList.get(Number(roomId)).playing, data.row, data.col]
                         );
+
                     } catch (err) {
                         console.error("插入游戏记录失败", err);
                         return;
@@ -301,6 +318,14 @@ wss.on('connection', async (ws, req) => {
                                  WHERE match_id = ?`,
                                 [roomList.get(Number(roomId)).playing, roomList.get(Number(roomId)).matchId]  // winner 是胜利者的玩家 ID
                             );
+                            // 在数据库中将胜利者的胜利场次games_won + 1:
+                            db.execute(
+                                `UPDATE users
+                                 SET games_won = games_won + 1
+                                 WHERE userid =?`,
+                                [roomList.get(Number(roomId)).playing]  // winner 是胜利者的玩家 ID
+                            );
+
                         } catch (err) {
                             console.error("更新胜利者失败", err);
                             return;
