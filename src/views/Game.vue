@@ -5,7 +5,7 @@
   <div class="common-layout">
     <el-container>
       <!-- 左侧侧边栏 -->
-      <el-aside width="300px">
+      <el-aside width="20%">
         <div>
           <UserCard :user="user1" />
           <UserCard :user="user2" />
@@ -13,6 +13,18 @@
       </el-aside>
 
       <!-- 中间内容区域，包含棋盘 -->
+      <!-- 胜利弹窗提示 -->
+      <el-dialog v-model="dialogVisible" title="胜利消息" width="30%" custom-class="winner-dialog">
+        <div class="winner-content">
+          <h2>{{ winner === 'X' ? '黑子方胜利！' : '白子方胜利！' }}</h2>
+          <p>恭喜{{ winner === 'X' ? '黑子方' : '白子方' }}取得了胜利！</p>
+        </div>
+        <div class="dialog-footer">
+          <el-button type="primary" @click="dialogVisible = false">关闭</el-button>
+        </div>
+      </el-dialog>
+
+
       <el-main>
         <div class="chessboard-container">
           <!-- 棋盘 -->
@@ -35,13 +47,13 @@
           </div>
 
           <!-- 显示胜利信息 -->
-          <div v-if="gameOver" class="winner-message">
+          <!-- <div v-if="gameOver" class="winner-message">
             <h2>{{ winner }} wins!</h2>
-          </div>
+          </div> -->
         </div>
       </el-main>
 
-      <el-aside width="300px">
+      <el-aside width="20%">
         <div class="chat-box">
           <!-- 打招呼按钮 -->
           <div class="chat-actions">
@@ -80,6 +92,7 @@ export default {
     const username = localStorage.getItem('username') || 'Guest'; // 获取localStorage中的用户名，默认值为'Guest'
     const email = localStorage.getItem('email') || 'example@example.com'; // 获取localStorage中的邮箱
     const messages = ref([]); // 用于存储聊天消息
+    const dialogVisible = ref(false); // 控制弹窗的显示与隐藏
 
     const ws = new WebSocket(`ws://localhost:3000/?userid=${userid}&room=${roomId}`);
 
@@ -99,6 +112,7 @@ export default {
       } else if (data.type === 'VICTORY') {
         winner.value = data.winner;
         gameOver.value = true;
+        dialogVisible.value = true; // 显示弹窗
       } else if (data.type === 'ConnectionDenial') {
         router.push("/roomselection");
         ElMessage.error(data.message);
@@ -153,7 +167,10 @@ export default {
       ws.close();
     });
 
-    return { board, currentPlayer, handleCellClick, winner, gameOver, resetGame, username, email, router, user1, user2, messages, sendGreeting };
+    return {
+      board, currentPlayer, handleCellClick, winner, gameOver, resetGame,
+      username, email, router, user1, user2, messages, sendGreeting, dialogVisible
+    };
   },
 };
 </script>
@@ -285,5 +302,21 @@ export default {
 
 .chat-actions {
   text-align: center;
+}
+
+.winner-dialog {
+  text-align: center;
+  border-radius: 10px;
+}
+
+.winner-content {
+  padding: 20px;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: center;
+  /* 按钮居中 */
+  padding: 10px 0;
 }
 </style>
