@@ -11,19 +11,21 @@
             </el-aside>
 
             <el-main class="about-main">
-                <el-carousel interval="5000" arrow="always" height="350px" class="carousel">
-                    <el-carousel-item>
-                        <img src="../assets/1.png" alt="轮播图1">
-                    </el-carousel-item>
-                    <el-carousel-item>
-                        <img src="../assets/2.png" alt="轮播图2">
-                    </el-carousel-item>
-                    <el-carousel-item>
-                        <img src="../assets/3.png" alt="轮播图3">
-                    </el-carousel-item>
-                </el-carousel>
+
 
                 <div class="about-content">
+                    <el-carousel interval="5000" arrow="always" height="350px" class="carousel">
+                        <el-carousel-item>
+                            <img src="../assets/1.png" alt="轮播图1">
+                        </el-carousel-item>
+                        <el-carousel-item>
+                            <img src="../assets/2.png" alt="轮播图2">
+                        </el-carousel-item>
+                        <el-carousel-item>
+                            <img src="../assets/3.png" alt="轮播图3">
+                        </el-carousel-item>
+                    </el-carousel>
+                    <br><br>
                     <h2>关于五子棋</h2>
                     <p>
                         五子棋是一款经典的棋盘游戏，目标是先将自己的五个棋子连成一条直线（横、竖、斜均可）。本游戏通过实时对战模式，让玩家可以与世界各地的对手一决高下。
@@ -69,7 +71,9 @@ export default {
 }
 
 body {
-    background: linear-gradient(to right, #f8f9fa, #e9ecef);
+    background: linear-gradient(to bottom, #e8f4ff, #d1e9fc);
+    /* 应用你喜欢的渐变背景色 */
+    font-family: 'Arial', sans-serif;
 }
 
 .about-container {
@@ -79,9 +83,26 @@ body {
 }
 
 .sidebar {
-    background-color: #ffffff;
+    background: linear-gradient(to bottom, #ffffff, #f0f8ff);
+    /* 轻柔渐变增强立体感 */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
     padding: 20px;
+}
+
+.sidebar .el-menu-item {
+    font-size: 18px;
+    font-weight: 500;
+    padding: 12px 18px;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.sidebar .el-menu-item:hover {
+    background-color: #cde4ff;
+    /* 鼠标悬停的高亮效果 */
+    border-radius: 6px;
+    transform: scale(1.05);
+    /* 鼠标悬停时稍微放大 */
 }
 
 .about-main {
@@ -91,44 +112,27 @@ body {
 }
 
 .carousel {
-    width: 89%;
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .el-carousel img {
     width: 100%;
     height: auto;
-    border-radius: 10px;
+    border-radius: 12px;
 }
 
 .about-content {
     margin-top: 20px;
-    background-color: #ffffff;
+    background: linear-gradient(to bottom, #ffffff, #f9f9f9);
+    /* 让内容块更显层次 */
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    padding: 10px;
-    max-width: 1000px;
-    margin: 2%;
-}
+    padding: 20px;
 
-.about-content h2,
-.about-content p,
-.about-content ul {
-    padding-left: 20px;
-    padding-right: 20px;
-}
-
-.about-content p {
-    padding-top: 10px;
-    padding-bottom: 10px;
-}
-
-.about-content ul {
-    padding-top: 15px;
-    padding-bottom: 15px;
-}
-
-.about-content li {
-    padding-left: 20px;
+    margin: auto;
 }
 
 .about-content h2 {
@@ -142,11 +146,15 @@ body {
     font-size: 16px;
     color: #555;
     line-height: 1.8;
+    margin-bottom: 15px;
 }
 
 .about-content ul {
     list-style-type: disc;
     margin-left: 20px;
+    padding-left: 20px;
+    padding-top: 15px;
+    padding-bottom: 15px;
 }
 
 .about-content li {
@@ -155,19 +163,17 @@ body {
     margin-bottom: 10px;
 }
 
-.sidebar .el-menu-item {
-    font-size: 18px;
-    font-weight: 500;
-    padding: 10px 15px;
-}
-
-.sidebar .el-menu-item:hover {
-    background-color: #f4f4f4;
-    border-radius: 4px;
+.about-content h2,
+.about-content p,
+.about-content ul {
+    padding-left: 20px;
+    padding-right: 20px;
 }
 
 .el-carousel {
     border-radius: 10px;
     overflow: hidden;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    /* 为轮播图添加阴影 */
 }
 </style>

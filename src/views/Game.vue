@@ -164,10 +164,14 @@ export default {
 .common-layout {
   display: flex;
   height: 100vh;
+  background: linear-gradient(to bottom, #e8f4ff, #d1e9fc);
 }
 
 .el-aside {
-  background-color: #f4f4f4;
+  background-color: #f8fafc;
+  border-right: 1px solid #e0e6ed;
+  padding: 20px;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
 }
 
 .chessboard-container {
@@ -175,13 +179,19 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  height: 94%;
+  background: linear-gradient(135deg, #ffffff, #f0f4f8);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  border-radius: 10px;
 }
 
 .chessboard {
   display: flex;
   flex-direction: column;
-  border: 2px solid #000;
+  border: 3px solid #34495e;
+  border-radius: 8px;
+  background-color: #ecf0f1;
 }
 
 .row {
@@ -191,69 +201,86 @@ export default {
 .cell {
   width: 40px;
   height: 40px;
-  border: 1px solid #ddd;
+  border: 1px solid #bdc3c7;
   cursor: pointer;
   background-color: #f9f9f9;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
+  transition: background-color 0.2s ease;
+}
+
+.cell:hover {
+  background-color: #d5e6f3;
 }
 
 .piece {
   width: 30px;
   height: 30px;
   border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .piece.X {
-  background-color: black;
-  /* 黑色棋子 */
-  border: 2px solid black;
-  /* 白色棋子加上黑色边框 */
+  background-color: #2c3e50;
 }
 
 .piece.O {
-  background-color: white;
-  /* 白色棋子 */
-  border: 2px solid black;
-  /* 白色棋子加上黑色边框 */
+  background-color: #ecf0f1;
+  border: 2px solid #2c3e50;
 }
 
 .button-group {
   display: flex;
   justify-content: center;
   gap: 10px;
+  margin-top: 15px;
+}
+
+.el-button {
+  transition: all 0.3s ease;
+}
+
+.el-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
 .winner-message {
   text-align: center;
   margin-top: 20px;
-  color: green;
+  color: #27ae60;
+  font-size: 1.5em;
+  font-weight: bold;
 }
 
 .chat-box {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: #f9f9f9;
+  height: 90%;
+  padding: 20px;
+  border: 1px solid #e0e6ed;
+  border-radius: 8px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .messages {
   flex: 1;
   overflow-y: auto;
   margin-bottom: 10px;
-  padding: 5px;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+  padding: 10px;
+  background: #f7faff;
+  border: 1px solid #e0e6ed;
+  border-radius: 8px;
 }
 
 .message {
-  margin: 5px 0;
+  margin: 8px 0;
+  padding: 5px 10px;
+  border-radius: 5px;
+  background-color: #e8f4ff;
 }
 
 .chat-actions {

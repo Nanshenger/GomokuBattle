@@ -325,9 +325,15 @@ wss.on('connection', async (ws, req) => {
                                 `UPDATE users
                                  SET games_won = games_won + 1
                                  WHERE userid =?`,
-                                [roomList.get(Number(roomId)).playing]  // winner 是胜利者的玩家 ID
+                                [roomList.get(Number(roomId)).playing]
                             );
-
+                            // 在数据中将matcher表的end_time字段更新
+                            db.execute(
+                                `UPDATE matches
+                                 SET end_time = NOW()
+                                 WHERE match_id =?`,
+                                [roomList.get(Number(roomId)).matchId]
+                            );
                         } catch (err) {
                             console.error("更新胜利者失败", err);
                             return;

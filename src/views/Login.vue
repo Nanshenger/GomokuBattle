@@ -5,7 +5,8 @@
   <router-view></router-view> <!-- 这里是渲染路由内容的地方 -->
   <div class="login-container">
     <el-card class="login-card">
-      <h2 class="login-title">登录</h2>
+      <h2 class="login-title">GomokuBattle - 登录</h2>
+      <br>
       <el-form :model="loginForm" :rules="loginRules" ref="loginForm" label-width="80px">
         <el-form-item label="用户名" prop="username">
           <el-input v-model="loginForm.username" placeholder="请输入用户名" />
@@ -69,7 +70,7 @@ export default {
               localStorage.setItem("games_played", response.data.data.games_played);
               localStorage.setItem("games_won", response.data.data.games_won);
               localStorage.setItem("coins", response.data.data.coins);
-              
+
 
               // 跳转到选择房间页面
               this.$router.push("/roomselection");
@@ -99,16 +100,67 @@ export default {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: #f5f5f5;
+  background: linear-gradient(to bottom, #a6c8ef, #d7e9f7);
+  /* 渐变背景，浅蓝到淡蓝 */
 }
 
 .login-card {
   width: 400px;
-  padding: 20px;
+  padding: 30px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  /* 卡片阴影效果 */
 }
 
 .login-title {
   text-align: center;
   margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #2c3e50;
+  /* 深蓝字体颜色 */
+}
+
+.el-form-item {
+  margin-bottom: 20px;
+}
+
+.el-input {
+  border-radius: 8px;
+  background-color: #f7f7f7;
+}
+
+.el-button {
+  background: linear-gradient(to right, #a6c8ef, #69b7eb);
+  /* 蓝色渐变 */
+  color: white;
+  border: none;
+  font-weight: 600;
+  /* 加粗字体 */
+  border-radius: 8px;
+  padding: 10px 20px;
+  transition: background 0.3s ease, transform 0.3s ease;
+  /* 平滑过渡 */
+}
+
+.el-button:hover {
+  background: linear-gradient(to right, #69b7eb, #3c8dff);
+  /* 鼠标悬停时稍微加深的蓝色渐变 */
+  transform: scale(1.05);
+  /* 放大效果 */
+}
+
+.el-button[type="text"] {
+  color: #4f6d7a;
+  /* 淡灰蓝色 */
+  font-weight: 500;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.el-button[type="text"]:hover {
+  color: #2c3e50;
+  /* 鼠标悬停时加深字体颜色 */
 }
 </style>
