@@ -21,6 +21,8 @@ router.post('/', async (req, res) => {
         if (user.password === password) {
             const { userid, username, email, nickname, sex, game_played, games_won, coins, created_at, last_login, permission_level } = user;
             res.json({ success: true, message: '登录成功', data: { userid, username, email, nickname, sex, game_played, games_won, coins, created_at, last_login, permission_level } });
+            // 对数据库中的users表中该用户的last_login字段进行更新
+            await db.execute('UPDATE users SET last_login = NOW() WHERE userid = ?', [userid]);
         } else {
             res.json({ success: false, message: '密码错误' });
         }
